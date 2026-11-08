@@ -6,12 +6,15 @@ import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.FoodItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SwordItem;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.modificationstation.stationapi.api.server.entity.EntitySpawnDataProvider;
 import net.modificationstation.stationapi.api.server.entity.HasTrackingParameters;
@@ -31,7 +34,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private boolean hubDeprived = false;
     private int actionCooldown;
 
-    private Entity enemy = null;
+    private Entity threat = null;
+    private Path threatPath = null;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -43,6 +47,80 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (!assignedName) {
             name = NameGenerator.generateDroneName();
             assignedName = true;
+        }
+    }
+
+    @Override
+    protected void tickLiving() {
+        super.tickLiving();
+        walkToEntity(threat, threatPath);
+    }
+
+    private void walkToEntity(Entity target, Path path) {
+        if (target == null || path == null) {
+            return;
+        }
+        int bodyCenter = MathHelper.floor(this.boundingBox.minY + (double)0.5F);
+        if (this.random.nextInt(100) != 0) {
+            Vec3d nodePosition = path.getNodePosition(this);
+            double destinationAreaSize = this.width;
+
+            while(nodePosition != null && nodePosition.squaredDistanceTo(this.x, nodePosition.y, this.z) < destinationAreaSize * destinationAreaSize) {
+                path.next();
+                if (path.isFinished()) {
+                    nodePosition = null;
+                    path = null;
+                } else {
+                    nodePosition = path.getNodePosition(this);
+                }
+            }
+
+            this.jumping = false;
+            if (nodePosition != null) {
+                double xDifference = nodePosition.x - this.x;
+                double zDifference = nodePosition.z - this.z;
+                double yDifference = nodePosition.y - (double)bodyCenter;
+                float var14 = (float)(Math.atan2(zDifference, xDifference) * (double)180.0F / (double)(float)Math.PI) - 90.0F;
+                float yawCorrection = var14 - this.yaw;
+
+                for(this.forwardSpeed = this.movementSpeed; yawCorrection < -180.0F; yawCorrection += 360.0F) {
+                }
+
+                while(yawCorrection >= 180.0F) {
+                    yawCorrection -= 360.0F;
+                }
+
+                if (yawCorrection > 30.0F) {
+                    yawCorrection = 30.0F;
+                }
+
+                if (yawCorrection < -30.0F) {
+                    yawCorrection = -30.0F;
+                }
+
+                this.yaw += yawCorrection;
+                double entityXDifference = target.x - this.x;
+                double entityZDifference = target.z - this.z;
+                float previousYaw = this.yaw;
+                this.yaw = (float)(Math.atan2(entityZDifference, entityXDifference) * (double)180.0F / (double)(float)Math.PI) - 90.0F;
+                yawCorrection = (previousYaw - this.yaw + 90.0F) * (float)Math.PI / 180.0F;
+                this.sidewaysSpeed = -MathHelper.sin(yawCorrection) * this.forwardSpeed * 0.1F;
+
+                if (yDifference > (double)0) {
+                    this.jumping = true;
+                }
+            }
+
+            this.lookAt(target, 30.0F, 30.0F);
+
+            if (this.horizontalCollision && path == null) {
+                this.jumping = true;
+            }
+
+            if (this.random.nextFloat() < 0.8F && (isSubmergedInWater() || isTouchingLava())) {
+                this.jumping = true;
+            }
+
         }
     }
 
@@ -66,10 +144,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (actionCooldown > 0) {
             return;
         }
-        if (enemy == null) {
+        if (threat == null) {
             return;
         }
-        lookAt(enemy, 30, 30);
+        lookAt(threat, 30, 30);
 
         // Check hand for sword
         ItemStack hand = getHand();
@@ -115,30 +193,36 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     }
 
     private void counterattack() {
-        if (!enemy.isAlive()) {
-            enemy = null;
+        if (!threat.isAlive()) {
+            threat = null;
             return;
         }
-        double enemyDistance = enemy.getSquaredDistance(this);
+        double enemyDistance = threat.getSquaredDistance(this);
         if (enemyDistance < 2) {
-            attack(enemy);
+            attack(threat);
             return;
         }
         if (enemyDistance > 400) {
-            enemy = null;
+            threat = null;
+            return;
         }
+        createThreatPath();
+    }
+
+    private void createThreatPath() {
+        threatPath = world.findPath(this, threat, 32);
     }
 
     @Override
     public void attack(Entity target) {
         if (target == null) {
-            enemy = null;
+            threat = null;
             return;
         }
         swingHand();
         super.attack(target);
         if (!target.isAlive()) {
-            enemy = null;
+            threat = null;
         }
     }
 
@@ -223,7 +307,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     @Override
     public boolean damage(Entity damageSource, int amount) {
-        enemy = damageSource;
+        threat = damageSource;
         return super.damage(damageSource, amount);
     }
 
