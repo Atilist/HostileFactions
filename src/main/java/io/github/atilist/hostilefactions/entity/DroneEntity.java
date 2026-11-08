@@ -6,6 +6,9 @@ import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.FoodItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.world.World;
 import net.modificationstation.stationapi.api.server.entity.EntitySpawnDataProvider;
@@ -15,11 +18,17 @@ import net.modificationstation.stationapi.api.util.TriState;
 
 @HasTrackingParameters(trackingDistance = 30, updatePeriod = 1, sendVelocity = TriState.TRUE)
 public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider {
-    private int hubX, hubY, hubZ;
-    private boolean assignedName = false;
+    private static final int SLOT_SWAP_DURATION = 10;
+    private static final int HOTBAR_SCROLL_DURATION = 5;
+
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
+
+    private int hubX, hubY, hubZ;
+    private boolean assignedName = false;
     private boolean hubDeprived = false;
+    private int slotSwapCooldown;
+    private int hotbarScrollCooldown;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -37,8 +46,23 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     @Override
     public void tick() {
         super.tick();
+        checkExistence();
 
-        // Check validity of existence
+        // Simulate inventory management delays
+        if (slotSwapCooldown > 0) {
+            slotSwapCooldown--;
+            return;
+        }
+        if (hotbarScrollCooldown > 0) {
+            hotbarScrollCooldown--;
+            return;
+        }
+
+        // Survival instincts
+        respondToHealthStatus();
+    }
+
+    private void checkExistence() {
         hubCheck.tick();
         if (!hubCheck.inProgress()) {
             checkForHub();
@@ -49,6 +73,59 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 damage(1);
             }
         }
+    }
+
+    private void respondToHealthStatus() {
+        if (health == 20) {
+            return;
+        }
+
+        // Check hand for food and eat if valid
+        ItemStack hand = getHand();
+        if (hand != null) {
+            Item item = hand.getItem();
+            if (item instanceof FoodItem foodItem) {
+                hand = foodItem.use(hand, world, this);
+                if (hand != null && hand.count <= 0) {
+                    hand = null;
+                }
+                setHand(hand);
+                return;
+            }
+        }
+
+        // Check hotbar for food
+        for (int slot = 0; slot < 9; slot++) {
+            ItemStack hotbarStack = this.inventory.getStack(slot);
+            if (hotbarStack == null) {
+                continue;
+            }
+            Item hotbarItem = hotbarStack.getItem();
+            if (hotbarItem instanceof FoodItem) {
+                inventory.selectedSlot = slot;
+                hotbarScrollCooldown = HOTBAR_SCROLL_DURATION;
+                return;
+            }
+        }
+
+        // Check inventory for food
+        for (int slot = 9; slot < this.inventory.main.length; slot++) {
+            ItemStack inventoryStack = this.inventory.getStack(slot);
+            if (inventoryStack == null) {
+                continue;
+            }
+            Item inventoryItem = inventoryStack.getItem();
+            if (inventoryItem instanceof FoodItem) {
+                setHand(inventoryStack);
+                this.inventory.setStack(slot, hand);
+                slotSwapCooldown = SLOT_SWAP_DURATION;
+                return;
+            }
+        }
+    }
+
+    private void setHand(ItemStack hand) {
+        this.inventory.setStack(inventory.selectedSlot, hand);
     }
 
     public void setHubLocation(int hubX, int hubY, int hubZ) {
