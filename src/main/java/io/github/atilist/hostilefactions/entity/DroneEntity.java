@@ -37,6 +37,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private Entity threat = null;
     private Path threatPath = null;
 
+    private Path locationPath = null;
+    private int locationX, locationY, locationZ;
+    private boolean hasLocationTarget = false;
+
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
         setPosition(x, y, z);
@@ -53,12 +57,13 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     @Override
     protected void tickLiving() {
         super.tickLiving();
-        walkToEntity(threat, threatPath);
+        threatPath = walkToEntity(threat, threatPath);
+        locationPath = walkToLocation(locationPath);
     }
 
-    private void walkToEntity(Entity target, Path path) {
+    private Path walkToEntity(Entity target, Path path) {
         if (target == null || path == null) {
-            return;
+            return path;
         }
         int bodyCenter = MathHelper.floor(this.boundingBox.minY + (double)0.5F);
         if (this.random.nextInt(100) != 0) {
@@ -122,6 +127,69 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             }
 
         }
+        return path;
+    }
+
+    private Path walkToLocation(Path path) {
+        if (path == null || !hasLocationTarget) {
+            return null;
+        }
+        int bodyCenter = MathHelper.floor(this.boundingBox.minY + (double)0.5F);
+        if (this.random.nextInt(100) != 0) {
+            Vec3d nodePosition = path.getNodePosition(this);
+
+            while(nodePosition != null && nodePosition.squaredDistanceTo(this.x, nodePosition.y, this.z) < 4) {
+                path.next();
+                if (path.isFinished()) {
+                    nodePosition = null;
+                    path = null;
+                } else {
+                    nodePosition = path.getNodePosition(this);
+                }
+            }
+
+            this.jumping = false;
+            if (nodePosition != null) {
+                double xDifference = nodePosition.x - this.x;
+                double zDifference = nodePosition.z - this.z;
+                double yDifference = nodePosition.y - (double)bodyCenter;
+                float var14 = (float)(Math.atan2(zDifference, xDifference) * (double)180.0F / (double)(float)Math.PI) - 90.0F;
+                float yawCorrection = var14 - this.yaw;
+
+                for(this.forwardSpeed = this.movementSpeed; yawCorrection < -180.0F; yawCorrection += 360.0F) {
+                }
+
+                while(yawCorrection >= 180.0F) {
+                    yawCorrection -= 360.0F;
+                }
+
+                if (yawCorrection > 30.0F) {
+                    yawCorrection = 30.0F;
+                }
+
+                if (yawCorrection < -30.0F) {
+                    yawCorrection = -30.0F;
+                }
+
+                this.yaw += yawCorrection;
+                yawCorrection = (90.0F) * (float)Math.PI / 180.0F;
+                this.sidewaysSpeed = -MathHelper.sin(yawCorrection) * this.forwardSpeed * 0.1F;
+
+                if (yDifference > (double)0) {
+                    this.jumping = true;
+                }
+            }
+
+            if (this.horizontalCollision && path == null) {
+                this.jumping = true;
+            }
+
+            if (this.random.nextFloat() < 0.8F && (isSubmergedInWater() || isTouchingLava())) {
+                this.jumping = true;
+            }
+
+        }
+        return path;
     }
 
     @Override
@@ -138,6 +206,51 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         // Survival instincts
         respondToHealthStatus();
         prepareCounterattack();
+
+        // Mission execution
+        moveToLocation();
+    }
+
+    private void moveToLocation() {
+        if (!hasLocationTarget) {
+            return;
+        }
+        if (locationPath != null) {
+            return;
+        }
+        double differenceX = locationX - x;
+        double differenceY = locationY - y;
+        double differenceZ = locationZ - z;
+        double distanceX = Math.abs(differenceX);
+        double distanceY = Math.abs(differenceY);
+        double distanceZ = Math.abs(differenceZ);
+        if (distanceX < 4 && distanceY < 4 && distanceZ < 4) {
+            hasLocationTarget = false;
+            return;
+        }
+        if (distanceX < 8 && distanceY < 8 && distanceZ < 8) {
+            locationPath = world.findPath(this, locationX, locationY, locationZ, 32);
+            return;
+        }
+        double targetX = locationX;
+        double targetY = locationY;
+        double targetZ = locationZ;
+        if (differenceX > 0) {
+            targetX = x + Math.min(distanceX, 8);
+        } else if (differenceX < 0) {
+            targetX = x - Math.min(distanceX, 8);
+        }
+        if (differenceY > 0) {
+            targetY = y + Math.min(distanceY, 8);
+        } else if (differenceY < 0) {
+            targetY = y - Math.min(distanceY, 8);
+        }
+        if (differenceZ > 0) {
+            targetZ = z + Math.min(distanceZ, 8);
+        } else if (differenceZ < 0) {
+            targetZ = z - Math.min(distanceZ, 8);
+        }
+        locationPath = world.findPath(this, (int) targetX, (int) targetY, (int) targetZ, 32);
     }
 
     private void prepareCounterattack() {
@@ -285,6 +398,15 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 actionCooldown = SLOT_SWAP_DURATION;
                 return;
             }
+        }
+
+        // Return to hub if health is low and no food available
+        if (health <= 5) {
+            hasLocationTarget = true;
+            locationX = hubX;
+            locationY = hubY;
+            locationZ = hubZ;
+            threat = null;
         }
     }
 
