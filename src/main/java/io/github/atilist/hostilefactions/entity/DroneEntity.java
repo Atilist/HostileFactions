@@ -5,10 +5,12 @@ import io.github.atilist.hostilefactions.events.init.EntityListener;
 import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.FoodItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.SwordItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.world.World;
 import net.modificationstation.stationapi.api.server.entity.EntitySpawnDataProvider;
@@ -28,6 +30,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private boolean assignedName = false;
     private boolean hubDeprived = false;
     private int actionCooldown;
+
+    private Entity enemy = null;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -55,6 +59,48 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
         // Survival instincts
         respondToHealthStatus();
+        prepareCounterattack();
+    }
+
+    private void prepareCounterattack() {
+        if (enemy == null) {
+            return;
+        }
+        ItemStack hand = getHand();
+        if (hand != null) {
+            Item item = hand.getItem();
+            if (item instanceof SwordItem) {
+                counterattack();
+                return;
+            }
+        }
+    }
+
+    private void counterattack() {
+        if (!enemy.isAlive()) {
+            enemy = null;
+            return;
+        }
+        double enemyDistance = enemy.getSquaredDistance(this);
+        if (enemyDistance < 2) {
+            attack(enemy);
+            return;
+        }
+        if (enemyDistance > 400) {
+            enemy = null;
+        }
+    }
+
+    @Override
+    public void attack(Entity target) {
+        if (target == null) {
+            enemy = null;
+            return;
+        }
+        super.attack(target);
+        if (!target.isAlive()) {
+            enemy = null;
+        }
     }
 
     private void checkExistence() {
@@ -134,6 +180,12 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (!(blockEntity instanceof HubBlockEntity)) {
             hubDeprived = true;
         }
+    }
+
+    @Override
+    public boolean damage(Entity damageSource, int amount) {
+        enemy = damageSource;
+        return super.damage(damageSource, amount);
     }
 
     @Override
