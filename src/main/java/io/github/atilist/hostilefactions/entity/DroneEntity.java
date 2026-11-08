@@ -4,6 +4,8 @@ import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
 import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
+import io.github.atilist.hostilefactions.util.mission.task.BlockGatheringTask;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.pathing.Path;
@@ -29,6 +31,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
     private final TickClock hubRegeneration = new TickClock(400, "HubRegeneration");
+    private final TickClock missionDelay = new TickClock(10, "MissionDelay");
+
+    // Test only, remove once missions are fully implemented
+    private final BlockGatheringTask testTask = new BlockGatheringTask(new ItemStack(Block.DIRT, 8, 0), new Block[]{Block.GRASS_BLOCK, Block.DIRT});
 
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
@@ -210,6 +216,18 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
         // Mission execution
         moveToLocation();
+        followMission();
+    }
+
+    private void followMission() {
+        missionDelay.tick();
+        if (missionDelay.inProgress()) {
+            return;
+        }
+        if (testTask.isFinished(this)) {
+            return;
+        }
+        testTask.execute(this);
     }
 
     private void moveToLocation() {
@@ -352,8 +370,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             }
         }
         if (health < 20) {
+            hubRegeneration.tick();
             if (hubRegeneration.inProgress()) {
-                hubRegeneration.tick();
                 return;
             }
             double hubDistanceX = Math.abs(x - hubX);
@@ -440,6 +458,45 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         }
     }
 
+    public void breakBlock(int blockX, int blockY, int blockZ) {
+        int blockId = world.getBlockId(blockX, blockY, blockZ);
+        if (blockId == 0) {
+            return;
+        }
+        Block block = Block.BLOCKS[blockId];
+        if (block == null) {
+            return;
+        }
+        int blockMeta = world.getBlockMeta(blockX, blockY, blockZ);
+        int droppedItemId = block.getDroppedItemId(blockMeta, random);
+        int droppedItemCount = block.getDroppedItemCount(random);
+        world.setBlock(blockX, blockY, blockZ, 0);
+        if (droppedItemCount <= 0) {
+            return;
+        }
+        ItemStack droppedStack = new ItemStack(droppedItemId, droppedItemCount, 0);
+        inventory.addStack(droppedStack);
+    }
+
+    public boolean hasItems(ItemStack requirement) {
+        ItemStack[] mainInventory = this.inventory.main;
+        int requiredCount = requirement.count;
+        int available = 0;
+        for (ItemStack currentItem : mainInventory) {
+            if (currentItem == null) {
+                continue;
+            }
+            if (!(currentItem.isItemEqual(requirement))) {
+                continue;
+            }
+            available += currentItem.count;
+            if (available >= requiredCount) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean damage(Entity damageSource, int amount) {
         threat = damageSource;
@@ -468,6 +525,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         hubCheck.readNbt(nbt);
         decay.readNbt(nbt);
         hubRegeneration.readNbt(nbt);
+        missionDelay.writeNbt(nbt);
     }
 
     @Override
@@ -483,6 +541,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         hubCheck.writeNbt(nbt);
         decay.writeNbt(nbt);
         hubRegeneration.writeNbt(nbt);
+        missionDelay.writeNbt(nbt);
     }
 
     @Override
