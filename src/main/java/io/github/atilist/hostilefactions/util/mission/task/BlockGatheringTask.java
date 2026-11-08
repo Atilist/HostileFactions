@@ -48,6 +48,18 @@ public class BlockGatheringTask implements Task {
                 }
             }
         }
+
+        // Check medium range for blocks
+        for (int xOffset = -2; xOffset <= 2; xOffset++) {
+            for (int yOffset = -1; yOffset <= 3; yOffset++) {
+                for (int zOffset = -2; zOffset <= 2; zOffset++) {
+                    if (isValidBlockId(world, x + xOffset * 4, y + yOffset * 4, z + zOffset * 4)) {
+                        drone.setLocationTarget(x + xOffset * 4, y + yOffset * 4, z + zOffset * 4);
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     private boolean isValidBlockId(World world, int x, int y, int z) {

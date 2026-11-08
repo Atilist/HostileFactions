@@ -220,6 +220,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     }
 
     private void followMission() {
+        if (hasLocationTarget) {
+            return;
+        }
         missionDelay.tick();
         if (missionDelay.inProgress()) {
             return;
@@ -495,6 +498,13 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             }
         }
         return false;
+    }
+
+    public void setLocationTarget(int x, int y, int z) {
+        hasLocationTarget = true;
+        locationX = x;
+        locationY = y;
+        locationZ = z;
     }
 
     @Override
