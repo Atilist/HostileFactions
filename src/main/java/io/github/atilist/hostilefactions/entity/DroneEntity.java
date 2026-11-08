@@ -27,8 +27,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
     private boolean hubDeprived = false;
-    private int slotSwapCooldown;
-    private int hotbarScrollCooldown;
+    private int actionCooldown;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -49,12 +48,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         checkExistence();
 
         // Simulate inventory management delays
-        if (slotSwapCooldown > 0) {
-            slotSwapCooldown--;
-            return;
-        }
-        if (hotbarScrollCooldown > 0) {
-            hotbarScrollCooldown--;
+        if (actionCooldown > 0) {
+            actionCooldown--;
             return;
         }
 
@@ -103,7 +98,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             Item hotbarItem = hotbarStack.getItem();
             if (hotbarItem instanceof FoodItem) {
                 inventory.selectedSlot = slot;
-                hotbarScrollCooldown = HOTBAR_SCROLL_DURATION;
+                actionCooldown = HOTBAR_SCROLL_DURATION;
                 return;
             }
         }
@@ -118,7 +113,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             if (inventoryItem instanceof FoodItem) {
                 setHand(inventoryStack);
                 this.inventory.setStack(slot, hand);
-                slotSwapCooldown = SLOT_SWAP_DURATION;
+                actionCooldown = SLOT_SWAP_DURATION;
                 return;
             }
         }
