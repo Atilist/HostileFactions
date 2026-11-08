@@ -63,9 +63,14 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     }
 
     private void prepareCounterattack() {
+        if (actionCooldown > 0) {
+            return;
+        }
         if (enemy == null) {
             return;
         }
+
+        // Check hand for sword
         ItemStack hand = getHand();
         if (hand != null) {
             Item item = hand.getItem();
@@ -74,6 +79,38 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 return;
             }
         }
+
+        // Check hotbar for sword
+        for (int slot = 0; slot < 9; slot++) {
+            ItemStack hotbarStack = this.inventory.getStack(slot);
+            if (hotbarStack == null) {
+                continue;
+            }
+            Item hotbarItem = hotbarStack.getItem();
+            if (hotbarItem instanceof SwordItem) {
+                actionCooldown = HOTBAR_SCROLL_DURATION;
+                inventory.selectedSlot = slot;
+                return;
+            }
+        }
+
+        // Check inventory for sword
+        for (int slot = 9; slot < this.inventory.main.length; slot++) {
+            ItemStack inventoryStack = this.inventory.getStack(slot);
+            if (inventoryStack == null) {
+                continue;
+            }
+            Item inventoryItem = inventoryStack.getItem();
+            if (inventoryItem instanceof SwordItem) {
+                setHand(inventoryStack);
+                this.inventory.setStack(slot, hand);
+                actionCooldown = SLOT_SWAP_DURATION;
+                return;
+            }
+        }
+
+        // Counterattack without weapon
+        counterattack();
     }
 
     private void counterattack() {
