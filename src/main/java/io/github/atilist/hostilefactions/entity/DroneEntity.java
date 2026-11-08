@@ -28,6 +28,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
+    private final TickClock hubRegeneration = new TickClock(400, "HubRegeneration");
 
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
@@ -350,6 +351,18 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 damage(1);
             }
         }
+        if (health < 20) {
+            if (hubRegeneration.inProgress()) {
+                hubRegeneration.tick();
+                return;
+            }
+            double hubDistanceX = Math.abs(x - hubX);
+            double hubDistanceY = Math.abs(y - hubY);
+            double hubDistanceZ = Math.abs(z - hubZ);
+            if (hubDistanceX < 6 && hubDistanceY < 6 && hubDistanceZ < 6) {
+                health++;
+            }
+        }
     }
 
     private void respondToHealthStatus() {
@@ -454,6 +467,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         }
         hubCheck.readNbt(nbt);
         decay.readNbt(nbt);
+        hubRegeneration.readNbt(nbt);
     }
 
     @Override
@@ -468,6 +482,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         }
         hubCheck.writeNbt(nbt);
         decay.writeNbt(nbt);
+        hubRegeneration.writeNbt(nbt);
     }
 
     @Override
