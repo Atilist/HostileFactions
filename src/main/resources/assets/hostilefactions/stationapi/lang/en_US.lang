@@ -1,1 +1,2 @@
 # @ is a shorthand for the current mod id, which is hostilefactions. E.g: tile.@.redclay.name
+tile.@.hub.name=NPC Faction Hub

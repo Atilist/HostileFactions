@@ -19,7 +19,11 @@
   "environment": "*",
   "entrypoints": {
     "stationapi:event_bus": [
-      "io.github.atilist.hostilefactions.events.init.InitListener"
+      "io.github.atilist.hostilefactions.events.init.InitListener",
+      "io.github.atilist.hostilefactions.events.init.EntityListener",
+      "io.github.atilist.hostilefactions.events.init.BlockListener",
+      "io.github.atilist.hostilefactions.events.init.TextureListener",
+      "io.github.atilist.hostilefactions.events.init.BlockEntityListener"
     ],
     "stationapi:event_bus_client": [
     ],
