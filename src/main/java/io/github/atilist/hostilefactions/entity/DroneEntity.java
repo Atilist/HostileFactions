@@ -2,6 +2,7 @@ package io.github.atilist.hostilefactions.entity;
 
 import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
+import io.github.atilist.hostilefactions.util.NameGenerator;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -14,6 +15,7 @@ import net.modificationstation.stationapi.api.util.TriState;
 @HasTrackingParameters(trackingDistance = 30, updatePeriod = 1, sendVelocity = TriState.TRUE)
 public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider {
     private int hubX, hubY, hubZ;
+    private boolean assignedName = false;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -22,7 +24,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     public DroneEntity(World world) {
         super(world);
-        name = "Drone";
+        if (!assignedName) {
+            name = NameGenerator.generateDroneName();
+            assignedName = true;
+        }
     }
 
     public void setHubLocation(int hubX, int hubY, int hubZ) {
@@ -46,6 +51,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         hubX = nbt.getInt("HubX");
         hubY = nbt.getInt("HubY");
         hubZ = nbt.getInt("HubZ");
+        assignedName = nbt.getBoolean("AssignedName");
+        if (assignedName) {
+            name = nbt.getString("Name");
+        }
     }
 
     @Override
@@ -54,6 +63,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         nbt.putInt("HubX", hubX);
         nbt.putInt("HubY", hubY);
         nbt.putInt("HubZ", hubZ);
+        nbt.putBoolean("AssignedName", assignedName);
+        if (assignedName) {
+            nbt.putString("Name", name);
+        }
     }
 
     @Override
@@ -63,5 +76,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
             hubBlockEntity.reportDroneDeath();
         }
+    }
+
+    @Override
+    public void updateCapeUrl() {
+        // Does not use capes, do nothing here
     }
 }
