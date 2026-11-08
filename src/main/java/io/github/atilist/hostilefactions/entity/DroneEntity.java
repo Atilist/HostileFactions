@@ -27,6 +27,7 @@ import net.modificationstation.stationapi.api.util.TriState;
 public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider {
     private static final int SLOT_SWAP_DURATION = 10;
     private static final int HOTBAR_SCROLL_DURATION = 5;
+    private static final int PATH_PATIENCE = 600;
 
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
@@ -34,7 +35,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock missionDelay = new TickClock(10, "MissionDelay");
 
     // Test only, remove once missions are fully implemented
-    private final BlockGatheringTask testTask = new BlockGatheringTask(new ItemStack(Block.DIRT, 8, 0), new Block[]{Block.GRASS_BLOCK, Block.DIRT});
+    private final BlockGatheringTask testTask = new BlockGatheringTask(new ItemStack(Block.LOG, 64, 0), new Block[]{Block.LOG});
 
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
@@ -43,6 +44,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     private Entity threat = null;
     private Path threatPath = null;
+    private int pathTime;
 
     private Path locationPath = null;
     private int locationX, locationY, locationZ;
@@ -215,7 +217,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         prepareCounterattack();
 
         // Mission execution
-        moveToLocation();
+        planLocationPath();
         followMission();
     }
 
@@ -233,11 +235,16 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         testTask.execute(this);
     }
 
-    private void moveToLocation() {
+    private void planLocationPath() {
         if (!hasLocationTarget) {
             return;
         }
+        if (pathTime > PATH_PATIENCE) {
+            locationPath = null;
+            pathTime = 0;
+        }
         if (locationPath != null) {
+            pathTime++;
             return;
         }
         double differenceX = locationX - x;
@@ -504,6 +511,13 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         hasLocationTarget = true;
         locationX = x;
         locationY = y;
+        locationZ = z;
+    }
+
+    public void setLocationTarget(int x, int z) {
+        hasLocationTarget = true;
+        locationX = x;
+        locationY = world.getTopY(x, z);
         locationZ = z;
     }
 

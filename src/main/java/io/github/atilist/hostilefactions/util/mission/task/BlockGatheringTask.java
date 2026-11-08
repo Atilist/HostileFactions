@@ -6,6 +6,8 @@ import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
+import java.util.Random;
+
 public class BlockGatheringTask implements Task {
     private final ItemStack itemsToGather;
     private final Block[] validBlocks;
@@ -50,16 +52,21 @@ public class BlockGatheringTask implements Task {
         }
 
         // Check medium range for blocks
-        for (int xOffset = -2; xOffset <= 2; xOffset++) {
+        for (int xOffset = -3; xOffset <= 3; xOffset++) {
             for (int yOffset = -1; yOffset <= 3; yOffset++) {
-                for (int zOffset = -2; zOffset <= 2; zOffset++) {
-                    if (isValidBlockId(world, x + xOffset * 4, y + yOffset * 4, z + zOffset * 4)) {
-                        drone.setLocationTarget(x + xOffset * 4, y + yOffset * 4, z + zOffset * 4);
+                for (int zOffset = -3; zOffset <= 3; zOffset++) {
+                    if (isValidBlockId(world, x + xOffset * 2, y + yOffset * 2, z + zOffset * 2)) {
+                        drone.setLocationTarget(x + xOffset * 2, y + yOffset * 2, z + zOffset * 2);
                         return;
                     }
                 }
             }
         }
+
+        // Walk into a different region
+        Random random = world.random;
+        drone.setLocationTarget(x + random.nextInt(64) - random.nextInt(32),
+                z + random.nextInt(64) - random.nextInt(32));
     }
 
     private boolean isValidBlockId(World world, int x, int y, int z) {
