@@ -25,4 +25,5 @@ Open your `server.properties` and set `online-mode` to `false`.
 
 ## License
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+This mod is available under the MIT license. Feel free to learn from it and incorporate it in your own projects. Please provide credit to this mod
+if you decide to use any of its code or assets in your project.
