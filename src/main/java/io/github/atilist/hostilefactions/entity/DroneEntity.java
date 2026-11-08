@@ -3,6 +3,7 @@ package io.github.atilist.hostilefactions.entity;
 import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
 import io.github.atilist.hostilefactions.util.NameGenerator;
+import io.github.atilist.hostilefactions.util.TickClock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -16,6 +17,9 @@ import net.modificationstation.stationapi.api.util.TriState;
 public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider {
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
+    private final TickClock hubCheck = new TickClock(200, "HubCheck");
+    private final TickClock decay = new TickClock(20, "Decay");
+    private boolean hubDeprived = false;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -30,10 +34,34 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         }
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+
+        // Check validity of existence
+        hubCheck.tick();
+        if (!hubCheck.inProgress()) {
+            checkForHub();
+        }
+        if (hubDeprived) {
+            decay.tick();
+            if (!decay.inProgress()) {
+                damage(1);
+            }
+        }
+    }
+
     public void setHubLocation(int hubX, int hubY, int hubZ) {
         this.hubX = hubX;
         this.hubY = hubY;
         this.hubZ = hubZ;
+    }
+
+    private void checkForHub() {
+        BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
+        if (!(blockEntity instanceof HubBlockEntity)) {
+            hubDeprived = true;
+        }
     }
 
     @Override
@@ -55,6 +83,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (assignedName) {
             name = nbt.getString("Name");
         }
+        hubCheck.readNbt(nbt);
+        decay.readNbt(nbt);
     }
 
     @Override
@@ -67,6 +97,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (assignedName) {
             nbt.putString("Name", name);
         }
+        hubCheck.writeNbt(nbt);
+        decay.writeNbt(nbt);
     }
 
     @Override
