@@ -69,6 +69,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (enemy == null) {
             return;
         }
+        lookAt(enemy, 30, 30);
 
         // Check hand for sword
         ItemStack hand = getHand();
@@ -134,6 +135,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             enemy = null;
             return;
         }
+        swingHand();
         super.attack(target);
         if (!target.isAlive()) {
             enemy = null;
