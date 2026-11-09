@@ -340,7 +340,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             return;
         }
         double enemyDistance = threat.getSquaredDistance(this);
-        if (enemyDistance < 2) {
+        if (enemyDistance < 4) {
             attack(threat);
             return;
         }
