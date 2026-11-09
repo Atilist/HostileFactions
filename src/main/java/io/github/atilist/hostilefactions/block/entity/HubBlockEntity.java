@@ -1,8 +1,10 @@
 package io.github.atilist.hostilefactions.block.entity;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
-import io.github.atilist.hostilefactions.util.strategy.MissionBoard;
+import io.github.atilist.hostilefactions.util.strategy.FactionStructureBoard;
 import io.github.atilist.hostilefactions.util.strategy.MissionTemplate;
+import io.github.atilist.hostilefactions.util.strategy.construction.FactionStructure;
+import io.github.atilist.hostilefactions.util.strategy.mission.StructureBuildingMissionTemplate;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 
@@ -10,19 +12,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HubBlockEntity extends BlockEntity {
-    private int droneCount = 0;
-    private int currentMission = 0;
-
     private final List<MissionTemplate> missions = new ArrayList<>();
 
+    private int droneCount = 0;
+    private int currentMission = 0;
+    private boolean initialized = false;
+
     public HubBlockEntity() {
-        missions.add(MissionBoard.CRAFTING_TABLE_CRAFTING);
     }
 
     @Override
     public void tick() {
         if (droneCount == 0) {
             spawnDrone();
+        }
+        if (!initialized) {
+            missions.add(new StructureBuildingMissionTemplate(
+                    new FactionStructure(FactionStructureBoard.SMALL_HUB_FOUNDATION, x - 2, y - 1, z - 2)
+            ));
+            initialized = true;
         }
     }
 

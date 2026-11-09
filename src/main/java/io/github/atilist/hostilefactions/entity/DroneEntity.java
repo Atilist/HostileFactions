@@ -6,7 +6,7 @@ import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
 import io.github.atilist.hostilefactions.util.strategy.Mission;
 import io.github.atilist.hostilefactions.util.strategy.MissionTemplate;
-import io.github.atilist.hostilefactions.util.strategy.mission.BlockGatheringMissionTemplate;
+import io.github.atilist.hostilefactions.util.strategy.construction.FactionStructure;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -42,6 +42,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private boolean hubDeprived = false;
     private int actionCooldown;
     private Mission currentMission = null;
+    public FactionStructure currentStructure = null;
 
     private Entity threat = null;
     private Path threatPath = null;
@@ -516,6 +517,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (droppedItemCount <= 0) {
             return;
         }
+        if (droppedItemId <= 0) {
+            return;
+        }
         ItemStack droppedStack = new ItemStack(droppedItemId, droppedItemCount, 0);
         inventory.addStack(droppedStack);
     }
@@ -584,11 +588,15 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         setLocationTarget(hubX, hubY, hubZ);
     }
 
+    public boolean isAtLocation(int targetX, int targetY, int targetZ) {
+        double targetDistanceX = Math.abs(x - targetX);
+        double targetDistanceY = Math.abs(y - targetY);
+        double targetDistanceZ = Math.abs(z - targetZ);
+        return targetDistanceX < 6 && targetDistanceY < 6 && targetDistanceZ < 6;
+    }
+
     public boolean isAtHub() {
-        double hubDistanceX = Math.abs(x - hubX);
-        double hubDistanceY = Math.abs(y - hubY);
-        double hubDistanceZ = Math.abs(z - hubZ);
-        return hubDistanceX < 6 && hubDistanceY < 6 && hubDistanceZ < 6;
+        return isAtLocation(hubX, hubY, hubZ);
     }
 
     public boolean isStationary() {
