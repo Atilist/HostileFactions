@@ -1,4 +1,4 @@
-package io.github.atilist.hostilefactions.util.mission;
+package io.github.atilist.hostilefactions.util.strategy;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
 import lombok.Getter;
@@ -33,5 +33,4 @@ public class Mission {
             }
         }
     }
-
 }

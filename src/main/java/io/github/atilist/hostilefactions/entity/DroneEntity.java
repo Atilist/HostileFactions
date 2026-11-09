@@ -4,7 +4,8 @@ import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
 import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
-import io.github.atilist.hostilefactions.util.mission.task.BlockGatheringTask;
+import io.github.atilist.hostilefactions.util.strategy.Mission;
+import io.github.atilist.hostilefactions.util.strategy.mission.BlockGatheringMissionTemplate;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -35,7 +36,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock missionDelay = new TickClock(10, "MissionDelay");
 
     // Test only, remove once missions are fully implemented
-    private final BlockGatheringTask testTask = new BlockGatheringTask(new ItemStack(Block.LOG, 64, 0), new Block[]{Block.LOG});
+    private Mission testMission = new Mission(this, new BlockGatheringMissionTemplate(new ItemStack(Block.LOG, 8, 0), new Block[]{Block.LOG, Block.LEAVES}));
 
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
@@ -229,10 +230,14 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (missionDelay.inProgress()) {
             return;
         }
-        if (testTask.isFinished(this)) {
+        if (testMission == null) {
             return;
         }
-        testTask.execute(this);
+        if (testMission.isComplete()) {
+            testMission = null;
+            return;
+        }
+        testMission.attemptTask();
     }
 
     private void planLocationPath() {
@@ -384,10 +389,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             if (hubRegeneration.inProgress()) {
                 return;
             }
-            double hubDistanceX = Math.abs(x - hubX);
-            double hubDistanceY = Math.abs(y - hubY);
-            double hubDistanceZ = Math.abs(z - hubZ);
-            if (hubDistanceX < 6 && hubDistanceY < 6 && hubDistanceZ < 6) {
+            if (isAtHub()) {
                 health++;
             }
         }
@@ -443,10 +445,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
         // Return to hub if health is low and no food available
         if (health <= 5) {
-            hasLocationTarget = true;
-            locationX = hubX;
-            locationY = hubY;
-            locationZ = hubZ;
+            returnToHub();
             threat = null;
         }
     }
@@ -519,6 +518,21 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         locationX = x;
         locationY = world.getTopY(x, z);
         locationZ = z;
+    }
+
+    public void returnToHub() {
+        setLocationTarget(hubX, hubY, hubZ);
+    }
+
+    public boolean isAtHub() {
+        double hubDistanceX = Math.abs(x - hubX);
+        double hubDistanceY = Math.abs(y - hubY);
+        double hubDistanceZ = Math.abs(z - hubZ);
+        return hubDistanceX < 6 && hubDistanceY < 6 && hubDistanceZ < 6;
+    }
+
+    public boolean isStationary() {
+        return !hasLocationTarget && threat == null;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package io.github.atilist.hostilefactions.util.mission;
+package io.github.atilist.hostilefactions.util.strategy;
 
 import lombok.Getter;
 

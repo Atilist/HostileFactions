@@ -1,7 +1,7 @@
-package io.github.atilist.hostilefactions.util.mission.task;
+package io.github.atilist.hostilefactions.util.strategy.task;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
-import io.github.atilist.hostilefactions.util.mission.Task;
+import io.github.atilist.hostilefactions.util.strategy.Task;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
