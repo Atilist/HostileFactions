@@ -98,7 +98,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 float var14 = (float)(Math.atan2(zDifference, xDifference) * (double)180.0F / (double)(float)Math.PI) - 90.0F;
                 float yawCorrection = var14 - this.yaw;
 
-                for(this.forwardSpeed = this.movementSpeed; yawCorrection < -180.0F; yawCorrection += 360.0F) {
+                this.forwardSpeed = movementSpeed;
+                while (yawCorrection < -180) {
+                    yawCorrection += 360;
                 }
 
                 while(yawCorrection >= 180.0F) {
@@ -166,7 +168,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 float var14 = (float)(Math.atan2(zDifference, xDifference) * (double)180.0F / (double)(float)Math.PI) - 90.0F;
                 float yawCorrection = var14 - this.yaw;
 
-                for(this.forwardSpeed = this.movementSpeed; yawCorrection < -180.0F; yawCorrection += 360.0F) {
+                this.forwardSpeed = movementSpeed;
+                while (yawCorrection < -180) {
+                    yawCorrection += 360;
                 }
 
                 while(yawCorrection >= 180.0F) {
