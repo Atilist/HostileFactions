@@ -43,6 +43,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private int actionCooldown;
     private Mission currentMission = null;
     public FactionStructure currentStructure = null;
+    public Item neededItem = null;
 
     private Entity threat = null;
     private Path threatPath = null;
@@ -605,6 +606,15 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     public void setMission(MissionTemplate missionTemplate) {
         this.currentMission = new Mission(this, missionTemplate);
+    }
+
+    public void placeBlock(int blockX, int blockY, int blockZ, Block blockToPlace) {
+        if (blockToPlace == null) {
+            return;
+        }
+        world.setBlock(blockX, blockY, blockZ, blockToPlace.id);
+        ItemStack stackToRemove = new ItemStack(blockToPlace, 1);
+        removeItems(stackToRemove);
     }
 
     @Override

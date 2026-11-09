@@ -9,7 +9,8 @@ import java.util.List;
 public class MissionTemplate {
     private final List<Task> tasks = new ArrayList<>();
 
-    public void addTask(Task task) {
+    public MissionTemplate addTask(Task task) {
         tasks.add(task);
+        return this;
     }
 }

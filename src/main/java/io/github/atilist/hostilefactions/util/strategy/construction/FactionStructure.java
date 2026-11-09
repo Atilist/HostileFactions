@@ -15,7 +15,9 @@ public class FactionStructure {
     @Getter
     private final List<RequiredBlocks> requiredBlocksList = new ArrayList<>();
     @Getter
-    private final List<BlockRemovalPosition> blockRemovalPositions = new ArrayList<>();
+    private final List<BlockPosition> blockRemovalPositions = new ArrayList<>();
+    @Getter
+    private final List<BlockPosition> foundationGaps = new ArrayList<>();
 
     public FactionStructure(FactionStructureTemplate template, int x, int y, int z) {
         this.template = template;
@@ -44,11 +46,11 @@ public class FactionStructure {
                         continue;
                     }
                     if (desiredBlock == Block.LOCKED_CHEST) {
-                        blockRemovalPositions.add(new BlockRemovalPosition(combinedX, combinedY, combinedZ));
+                        blockRemovalPositions.add(new BlockPosition(combinedX, combinedY, combinedZ));
                         intact = false;
                     } else if (desiredBlock.id != currentId) {
                         if (currentId != 0) {
-                            blockRemovalPositions.add(new BlockRemovalPosition(combinedX, combinedY, combinedZ));
+                            blockRemovalPositions.add(new BlockPosition(combinedX, combinedY, combinedZ));
                             continue;
                         }
                         intact = false;
@@ -72,6 +74,23 @@ public class FactionStructure {
                             }
                         }
                     }
+                }
+            }
+        }
+        return intact;
+    }
+
+    public boolean hasFoundation(DroneEntity drone) {
+        World world = drone.world;
+        boolean intact = true;
+        for (int xOffset = 0; xOffset < template.getXLength(); xOffset++) {
+            int combinedX = x + xOffset;
+            for (int zOffset = 0; zOffset < template.getZLength(); zOffset++) {
+                int combinedZ = z + zOffset;
+                int blockId = world.getBlockId(combinedX, y - 1, combinedZ);
+                if (blockId == 0) {
+                    intact = false;
+                    foundationGaps.add(new BlockPosition(combinedX, y - 1, combinedZ));
                 }
             }
         }
