@@ -116,12 +116,11 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 }
 
                 this.yaw += yawCorrection;
-                double entityXDifference = target.x - this.x;
-                double entityZDifference = target.z - this.z;
-                float previousYaw = this.yaw;
-                this.yaw = (float)(Math.atan2(entityZDifference, entityXDifference) * (double)180.0F / (double)(float)Math.PI) - 90.0F;
-                yawCorrection = (previousYaw - this.yaw + 90.0F) * (float)Math.PI / 180.0F;
-                this.sidewaysSpeed = -MathHelper.sin(yawCorrection) * this.forwardSpeed * 0.1F;
+                if (isStuck()) {
+                    this.sidewaysSpeed = 10;
+                } else {
+                    this.sidewaysSpeed = 0;
+                }
 
                 if (yDifference > (double)0) {
                     this.jumping = true;
@@ -186,8 +185,11 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 }
 
                 this.yaw += yawCorrection;
-                yawCorrection = (90.0F) * (float)Math.PI / 180.0F;
-                this.sidewaysSpeed = -MathHelper.sin(yawCorrection) * this.forwardSpeed * 0.1F;
+                if (isStuck()) {
+                    this.sidewaysSpeed = 10;
+                } else {
+                    this.sidewaysSpeed = 0;
+                }
 
                 if (yDifference > (double)0) {
                     this.jumping = true;
@@ -204,6 +206,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
         }
         return path;
+    }
+
+    private boolean isStuck() {
+        return Math.abs(velocityX) < 0.001 && Math.abs(velocityZ) < 0.001;
     }
 
     @Override
