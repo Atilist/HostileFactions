@@ -5,11 +5,13 @@ import io.github.atilist.hostilefactions.events.init.EntityListener;
 import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
 import io.github.atilist.hostilefactions.util.strategy.Mission;
+import io.github.atilist.hostilefactions.util.strategy.MissionTemplate;
 import io.github.atilist.hostilefactions.util.strategy.mission.BlockGatheringMissionTemplate;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.pathing.Path;
+import net.minecraft.entity.ai.pathing.PathNode;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.FoodItem;
 import net.minecraft.item.Item;
@@ -35,13 +37,11 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock hubRegeneration = new TickClock(400, "HubRegeneration");
     private final TickClock missionDelay = new TickClock(10, "MissionDelay");
 
-    // Test only, remove once missions are fully implemented
-    private Mission testMission = new Mission(this, new BlockGatheringMissionTemplate(new ItemStack(Block.LOG, 8, 0), new Block[]{Block.LOG, Block.LEAVES}));
-
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
     private boolean hubDeprived = false;
     private int actionCooldown;
+    private Mission currentMission = null;
 
     private Entity threat = null;
     private Path threatPath = null;
@@ -230,6 +230,14 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         // Mission execution
         planLocationPath();
         followMission();
+
+        // Debug
+        if (hasLocationTarget && locationPath != null) {
+            PathNode end = locationPath.getEnd();
+            if (end != null) {
+                world.addParticle("largesmoke", end.x, end.y, end.z, 0, 0, 0);
+            }
+        }
     }
 
     private void followMission() {
@@ -240,14 +248,25 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (missionDelay.inProgress()) {
             return;
         }
-        if (testMission == null) {
+        if (currentMission == null) {
+            lookForMission();
             return;
         }
-        if (testMission.isComplete()) {
-            testMission = null;
+        if (currentMission.isComplete()) {
+            currentMission = null;
             return;
         }
-        testMission.attemptTask();
+        currentMission.attemptTask();
+    }
+
+    private void lookForMission() {
+        BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
+        if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
+            MissionTemplate availableMission = hubBlockEntity.getCurrentMission();
+            if (availableMission != null) {
+                setMission(availableMission);
+            }
+        }
     }
 
     private void planLocationPath() {
@@ -520,6 +539,33 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         return false;
     }
 
+    public void removeItems(ItemStack itemsToRemove) {
+        ItemStack[] mainInventory = this.inventory.main;
+        int remainingCount = itemsToRemove.count;
+        for (int i = 0; i < mainInventory.length; i++) {
+            ItemStack currentItem = mainInventory[i];
+            if (currentItem == null) {
+                continue;
+            }
+            if (!(currentItem.isItemEqual(itemsToRemove))) {
+                continue;
+            }
+            int currentCount = currentItem.count;
+            if (currentCount <= remainingCount) {
+                remainingCount -= currentCount;
+                inventory.setStack(i, null);
+            } else {
+                currentItem.count = currentCount - remainingCount;
+                inventory.setStack(i, currentItem);
+                return;
+            }
+        }
+    }
+
+    public void addItems(ItemStack stack) {
+        inventory.addStack(stack);
+    }
+
     public void setLocationTarget(int x, int y, int z) {
         hasLocationTarget = true;
         locationX = x;
@@ -547,6 +593,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     public boolean isStationary() {
         return !hasLocationTarget && threat == null;
+    }
+
+    public void setMission(MissionTemplate missionTemplate) {
+        this.currentMission = new Mission(this, missionTemplate);
     }
 
     @Override
