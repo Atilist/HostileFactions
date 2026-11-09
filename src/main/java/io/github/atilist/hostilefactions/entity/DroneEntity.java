@@ -280,9 +280,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         double targetY = locationY;
         double targetZ = locationZ;
         if (differenceX > 0) {
-            targetX = x + Math.min(distanceX, 8);
+            targetX = x + Math.min(distanceX, 8) + pathVariation();
         } else if (differenceX < 0) {
-            targetX = x - Math.min(distanceX, 8);
+            targetX = x - Math.min(distanceX, 8) - pathVariation();
         }
         if (differenceY > 0) {
             targetY = y + Math.min(distanceY, 8);
@@ -290,11 +290,15 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             targetY = y - Math.min(distanceY, 8);
         }
         if (differenceZ > 0) {
-            targetZ = z + Math.min(distanceZ, 8);
+            targetZ = z + Math.min(distanceZ, 8) + pathVariation();
         } else if (differenceZ < 0) {
-            targetZ = z - Math.min(distanceZ, 8);
+            targetZ = z - Math.min(distanceZ, 8) - pathVariation();
         }
         locationPath = world.findPath(this, (int) targetX, (int) targetY, (int) targetZ, 32);
+    }
+
+    private int pathVariation() {
+        return random.nextInt(5);
     }
 
     private void prepareCounterattack() {
