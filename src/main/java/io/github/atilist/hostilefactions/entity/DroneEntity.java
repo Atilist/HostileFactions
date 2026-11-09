@@ -237,7 +237,8 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (hasLocationTarget && locationPath != null) {
             PathNode end = locationPath.getEnd();
             if (end != null) {
-                world.addParticle("largesmoke", end.x, end.y, end.z, 0, 0, 0);
+                world.addParticle("explode", end.x, end.y, end.z, 0, 0, 0);
+                world.addParticle("largesmoke", locationX, locationY, locationZ, 0, 0, 0);
             }
         }
     }
@@ -602,6 +603,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     public boolean isStationary() {
         return !hasLocationTarget && threat == null;
+    }
+
+    public boolean isMoving() {
+        return hasLocationTarget;
     }
 
     public void setMission(MissionTemplate missionTemplate) {

@@ -14,9 +14,8 @@ public class LogisticsTask implements Task {
         MissionTemplate backupMission = MissionBoard.getAlternativeResourceMission(drone.neededItem);
         if (backupMission != null) {
             drone.setMission(backupMission);
-        } else {
-            drone.neededItem = null;
         }
+        drone.neededItem = null;
     }
 
     @Override

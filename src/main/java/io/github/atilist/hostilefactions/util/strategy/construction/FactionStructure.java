@@ -55,7 +55,7 @@ public class FactionStructure {
                         }
                         intact = false;
                         if (requiredBlocksList.isEmpty()) {
-                            createNewRequirementEntry(desiredBlock);
+                            createNewRequirementEntry(desiredBlock, combinedX, combinedY, combinedZ);
                         } else {
                             boolean needsEntry = true;
                             RequiredBlocks requiredBlocks = null;
@@ -64,11 +64,12 @@ public class FactionStructure {
                                 requiredBlocks = requiredBlocksList.get(requirementIndex);
                                 if (requiredBlocks.getBlock() == desiredBlock) {
                                     requiredBlocks.requiredAmount++;
+                                    requiredBlocks.positions.add(new BlockPosition(combinedX, combinedY, combinedZ));
                                     needsEntry = false;
                                 }
                             }
                             if (needsEntry) {
-                                createNewRequirementEntry(desiredBlock);
+                                createNewRequirementEntry(desiredBlock, combinedX, combinedY, combinedZ);
                             } else {
                                 requiredBlocksList.set(requirementIndex - 1, requiredBlocks);
                             }
@@ -97,9 +98,10 @@ public class FactionStructure {
         return intact;
     }
 
-    private void createNewRequirementEntry(Block desiredBlock) {
+    private void createNewRequirementEntry(Block desiredBlock, int blockX, int blockY, int blockZ) {
         RequiredBlocks requiredBlocks = new RequiredBlocks(desiredBlock);
         requiredBlocks.requiredAmount = 1;
+        requiredBlocks.positions.add(new BlockPosition(blockX, blockY, blockZ));
         requiredBlocksList.add(requiredBlocks);
     }
 }

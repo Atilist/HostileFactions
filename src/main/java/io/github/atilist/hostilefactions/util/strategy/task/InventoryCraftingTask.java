@@ -47,8 +47,8 @@ public class InventoryCraftingTask implements Task {
     @Override
     public void execute(DroneEntity drone) {
         for (ItemStack requiredItem : requiredItems) {
-            drone.removeItems(requiredItem);
+            drone.removeItems(requiredItem.copy());
         }
-        drone.addItems(result);
+        drone.addItems(result.copy());
     }
 }

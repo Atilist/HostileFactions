@@ -51,20 +51,24 @@ public class BlockGatheringTask implements Task {
             }
         }
 
+        // Stop more advanced logic if the drone is still moving
+        if (drone.isMoving()) {
+            return;
+        }
+
         // Check medium range for blocks
-        for (int xOffset = -3; xOffset <= 3; xOffset++) {
-            for (int yOffset = -1; yOffset <= 3; yOffset++) {
-                for (int zOffset = -3; zOffset <= 3; zOffset++) {
-                    if (isValidBlockId(world, x + xOffset * 2, y + yOffset * 2, z + zOffset * 2)) {
-                        drone.setLocationTarget(x + xOffset * 2, y + yOffset * 2, z + zOffset * 2);
-                        return;
-                    }
-                }
+        Random random = world.random;
+        for (int attempt = 0; attempt < 16; attempt++) {
+            int xOffset = random.nextInt(17) - random.nextInt(9);
+            int yOffset = random.nextInt(17) - random.nextInt(9);
+            int zOffset = random.nextInt(17) - random.nextInt(9);
+            if (isValidBlockId(world, x + xOffset, y + yOffset, z + zOffset)) {
+                drone.setLocationTarget(x + xOffset, y + yOffset, z + zOffset);
+                return;
             }
         }
 
         // Walk into a different region
-        Random random = world.random;
         drone.setLocationTarget(x + random.nextInt(64) - random.nextInt(32),
                 z + random.nextInt(64) - random.nextInt(32));
     }
