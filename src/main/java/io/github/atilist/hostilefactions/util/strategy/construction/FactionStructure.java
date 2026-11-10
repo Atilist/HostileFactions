@@ -28,6 +28,7 @@ public class FactionStructure {
 
     public boolean checkStructure(DroneEntity drone) {
         requiredBlocksList.clear();
+        blockRemovalPositions.clear();
         World world = drone.world;
         Block[][][] reference = template.getBlocks();
         boolean intact = true;
