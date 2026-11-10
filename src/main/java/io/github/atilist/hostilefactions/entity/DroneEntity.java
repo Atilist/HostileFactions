@@ -195,7 +195,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 if (isStuck()) {
                     jumping = true;
                     this.sidewaysSpeed = 10;
-                    if (getBlockId(x, y + 2, z) == 0 && getBlockId(x, y - 2, z) == 0 && hasPathCorrectionBlocks()) {
+                    if (getBlockId(x, y + 2, z) == 0 && canReplaceBlock(x, y - 2, z) && hasPathCorrectionBlocks()) {
                         placePathCorrectionBlock(x, y - 2, z);
                     }
                 } else {
@@ -636,6 +636,11 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private int getBlockId(double blockX, double blockY, double blockZ) {
         world.addParticle("lava", Math.floor(blockX), blockY, Math.floor(blockZ), 0, 0, 0);
         return world.getBlockId((int) (Math.floor(blockX)), (int) blockY, (int) (Math.floor(blockZ)));
+    }
+
+    private boolean canReplaceBlock(double blockX, double blockY, double blockZ) {
+        int id = getBlockId(blockX, blockY, blockZ);
+        return id == 0 || id == Block.WATER.id || id == Block.FLOWING_WATER.id || id == Block.SNOW.id || id == Block.GRASS.id;
     }
 
     private boolean hasPathCorrectionBlocks() {
