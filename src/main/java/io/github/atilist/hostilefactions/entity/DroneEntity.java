@@ -159,6 +159,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             while(nodePosition != null && nodePosition.squaredDistanceTo(this.x, nodePosition.y, this.z) < 4) {
                 path.next();
                 if (path.isFinished()) {
+                    forwardSpeed = 0;
                     nodePosition = null;
                     path = null;
                 } else {
