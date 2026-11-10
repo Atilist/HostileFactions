@@ -28,7 +28,7 @@ public class HubBlockEntity extends BlockEntity {
         }
         if (!initialized) {
             missions.add(new StructureBuildingMissionTemplate(
-                    new FactionStructure(FactionStructureBoard.SMALL_HUB_FOUNDATION, x - 2, y - 1, z - 2)
+                    new FactionStructure(FactionStructureBoard.SMALL_HUB_FOUNDATION, x - 3, y - 1, z - 3)
             ));
             initialized = true;
         }

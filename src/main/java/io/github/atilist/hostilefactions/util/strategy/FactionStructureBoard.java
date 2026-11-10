@@ -8,19 +8,25 @@ public class FactionStructureBoard {
     public static final FactionStructureTemplate SMALL_HUB_FOUNDATION = new FactionStructureTemplate(
             new String[][]{
                     new String[] {
-                            "PPPPP", "     "
+                            "PPPPPPP", "       "
                     },
                     new String[] {
-                            "PPPPP", "     "
+                            "PPPPPPP", "       "
                     },
                     new String[] {
-                            "PPPPP", "  -  "
+                            "PPPPPPP", "       "
                     },
                     new String[] {
-                            "PPPPP", "     "
+                            "PPPPPPP", "   -   "
                     },
                     new String[] {
-                            "PPPPP", "     "
+                            "PPPPPPP", "       "
+                    },
+                    new String[] {
+                            "PPPPPPP", "       "
+                    },
+                    new String[] {
+                            "PPPPPPP", "       "
                     },
             },
             new FactionStructureBlockEntry[]{
