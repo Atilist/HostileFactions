@@ -52,6 +52,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private Path locationPath = null;
     private int locationX, locationY, locationZ;
     private boolean hasLocationTarget = false;
+    private boolean heightFlexible = false;
 
     public DroneEntity(World world, double x, double y, double z) {
         this(world);
@@ -71,6 +72,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         super.tickLiving();
         threatPath = walkToEntity(threat, threatPath);
         locationPath = walkToLocation(locationPath);
+        if (isSubmergedInWater()) {
+            jumping = true;
+        }
     }
 
     private Path walkToEntity(Entity target, Path path) {
@@ -188,6 +192,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
                 this.yaw += yawCorrection;
                 if (isStuck()) {
+                    jumping = true;
                     this.sidewaysSpeed = 10;
                 } else {
                     this.sidewaysSpeed = 0;
@@ -290,7 +295,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         double distanceX = Math.abs(differenceX);
         double distanceY = Math.abs(differenceY);
         double distanceZ = Math.abs(differenceZ);
-        if (distanceX < 4 && distanceY < 4 && distanceZ < 4) {
+        if (distanceX < 4 && (heightFlexible || distanceY < 4) && distanceZ < 4) {
             hasLocationTarget = false;
             return;
         }
@@ -577,6 +582,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         locationX = x;
         locationY = y;
         locationZ = z;
+        heightFlexible = false;
     }
 
     public void setLocationTarget(int x, int z) {
@@ -584,6 +590,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         locationX = x;
         locationY = world.getTopY(x, z);
         locationZ = z;
+        heightFlexible = true;
     }
 
     public void returnToHub() {

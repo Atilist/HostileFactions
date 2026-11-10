@@ -58,10 +58,10 @@ public class BlockGatheringTask implements Task {
 
         // Check medium range for blocks
         Random random = world.random;
-        for (int attempt = 0; attempt < 16; attempt++) {
-            int xOffset = random.nextInt(17) - random.nextInt(9);
-            int yOffset = random.nextInt(17) - random.nextInt(9);
-            int zOffset = random.nextInt(17) - random.nextInt(9);
+        for (int attempt = 0; attempt < 64; attempt++) {
+            int xOffset = bidirectionalRandom(random, 9);
+            int yOffset = bidirectionalRandom(random, 3);
+            int zOffset = bidirectionalRandom(random, 9);
             if (isValidBlockId(world, x + xOffset, y + yOffset, z + zOffset)) {
                 drone.setLocationTarget(x + xOffset, y + yOffset, z + zOffset);
                 return;
@@ -69,8 +69,7 @@ public class BlockGatheringTask implements Task {
         }
 
         // Walk into a different region
-        drone.setLocationTarget(x + random.nextInt(64) - random.nextInt(32),
-                z + random.nextInt(64) - random.nextInt(32));
+        drone.setLocationTarget(x + bidirectionalRandom(random, 64), z + bidirectionalRandom(random, 64));
     }
 
     private boolean isValidBlockId(World world, int x, int y, int z) {
@@ -81,5 +80,13 @@ public class BlockGatheringTask implements Task {
             }
         }
         return false;
+    }
+
+    private int bidirectionalRandom(Random random, int range) {
+        int value = random.nextInt(range);
+        if (random.nextBoolean()) {
+            value = -value;
+        }
+        return value;
     }
 }
