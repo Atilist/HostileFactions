@@ -31,6 +31,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private static final int SLOT_SWAP_DURATION = 10;
     private static final int HOTBAR_SCROLL_DURATION = 5;
     private static final int PATH_PATIENCE = 600;
+    private static final ItemStack BUILDING_BLOCK = new ItemStack(Block.DIRT, 1);
 
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
@@ -194,6 +195,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 if (isStuck()) {
                     jumping = true;
                     this.sidewaysSpeed = 10;
+                    if (getBlockId(x, y + 2, z) == 0 && getBlockId(x, y - 2, z) == 0 && hasPathCorrectionBlocks()) {
+                        placePathCorrectionBlock(x, y - 2, z);
+                    }
                 } else {
                     this.sidewaysSpeed = 0;
                 }
@@ -627,6 +631,19 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         world.setBlock(blockX, blockY, blockZ, blockToPlace.id);
         ItemStack stackToRemove = new ItemStack(blockToPlace, 1);
         removeItems(stackToRemove);
+    }
+
+    private int getBlockId(double blockX, double blockY, double blockZ) {
+        world.addParticle("lava", Math.floor(blockX), blockY, Math.floor(blockZ), 0, 0, 0);
+        return world.getBlockId((int) (Math.floor(blockX)), (int) blockY, (int) (Math.floor(blockZ)));
+    }
+
+    private boolean hasPathCorrectionBlocks() {
+        return hasItems(BUILDING_BLOCK.copy());
+    }
+
+    private void placePathCorrectionBlock(double blockX, double blockY, double blockZ) {
+        placeBlock((int) (Math.floor(blockX)), (int) blockY, (int) (Math.floor(blockZ)), Block.DIRT);
     }
 
     @Override
