@@ -1,9 +1,12 @@
 package io.github.atilist.hostilefactions.block.entity;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
-import io.github.atilist.hostilefactions.util.strategy.FactionStructureBoard;
+import io.github.atilist.hostilefactions.util.TickClock;
+import io.github.atilist.hostilefactions.util.strategy.Age;
+import io.github.atilist.hostilefactions.util.strategy.AgeFinder;
+import io.github.atilist.hostilefactions.util.strategy.FactionBuildingTemplateBoard;
 import io.github.atilist.hostilefactions.util.strategy.MissionTemplate;
-import io.github.atilist.hostilefactions.util.strategy.construction.FactionStructure;
+import io.github.atilist.hostilefactions.util.strategy.construction.FactionBuilding;
 import io.github.atilist.hostilefactions.util.strategy.mission.StructureBuildingMissionTemplate;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -13,10 +16,14 @@ import java.util.List;
 
 public class HubBlockEntity extends BlockEntity {
     private final List<MissionTemplate> missions = new ArrayList<>();
+    private final TickClock ageCheck = new TickClock(100, "AgeCheck");
 
     private int droneCount = 0;
     private int currentMission = 0;
     private boolean initialized = false;
+    private int currentAgeOrdinal;
+    private Age currentAge = Age.DARK;
+    private FactionBuilding hub = null;
 
     public HubBlockEntity() {
     }
@@ -27,11 +34,33 @@ public class HubBlockEntity extends BlockEntity {
             spawnDrone();
         }
         if (!initialized) {
-            missions.add(new StructureBuildingMissionTemplate(
-                    new FactionStructure(FactionStructureBoard.SMALL_HUB_FOUNDATION, x - 3, y - 1, z - 3)
-            ));
+            hub = new FactionBuilding(FactionBuildingTemplateBoard.HUB, x - 3, y - 1, z - 3);
+            updateMissions();
             initialized = true;
         }
+        attemptAgeUp();
+    }
+
+    private void updateMissions() {
+        missions.clear();
+        hub.setAge(currentAge);
+        missions.add(new StructureBuildingMissionTemplate(hub.getCurrentStructure()));
+    }
+
+    private void attemptAgeUp() {
+        ageCheck.tick();
+        if (ageCheck.inProgress()) {
+            return;
+        }
+        if (hasAgeCriteriaMet()) {
+            System.out.println("Aged up");
+            currentAge = AgeFinder.getNextAge(currentAge);
+            updateMissions();
+        }
+    }
+
+    private boolean hasAgeCriteriaMet() {
+        return hub.isAtMaxLevel() && hub.isFinished(world);
     }
 
     private void spawnDrone() {
@@ -46,6 +75,8 @@ public class HubBlockEntity extends BlockEntity {
         super.readNbt(nbt);
         droneCount = nbt.getInt("DroneCount");
         currentMission = nbt.getInt("CurrentMission");
+        currentAgeOrdinal = nbt.getInt("CurrentAge");
+        currentAge = AgeFinder.getAge(currentAgeOrdinal);
     }
 
     @Override
@@ -53,6 +84,7 @@ public class HubBlockEntity extends BlockEntity {
         super.writeNbt(nbt);
         nbt.putInt("DroneCount", droneCount);
         nbt.putInt("CurrentMission", currentMission);
+        nbt.putInt("CurrentAge", currentAgeOrdinal);
     }
 
     public void reportDroneDeath() {

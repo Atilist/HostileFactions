@@ -34,4 +34,33 @@ public class FactionStructureBoard {
                     new FactionStructureBlockEntry('-', null)
             }
     );
+    public static final FactionStructureTemplate SMALL_HUB_HOUSE = new FactionStructureTemplate(
+            new String[][]{
+                    new String[] {
+                            "PPPPPPP", "PPP PPP", "PPP PPP", "PPPPPPP", "PPPPPPP"
+                    },
+                    new String[] {
+                            "PPPPPPP", "P     P", "P     P", "P     P", "PPPPPPP"
+                    },
+                    new String[] {
+                            "PPPPPPP", "P     P", "P     P", "P     P", "PPPPPPP"
+                    },
+                    new String[] {
+                            "PPPPPPP", "   -   ", "       ", "P     P", "PPPPPPP"
+                    },
+                    new String[] {
+                            "PPPPPPP", "P     P", "P     P", "P     P", "PPPPPPP"
+                    },
+                    new String[] {
+                            "PPPPPPP", "P     P", "P     P", "P     P", "PPPPPPP"
+                    },
+                    new String[] {
+                            "PPPPPPP", "PPP PPP", "PPP PPP", "PPPPPPP", "PPPPPPP"
+                    },
+            },
+            new FactionStructureBlockEntry[]{
+                    new FactionStructureBlockEntry('P', Block.PLANKS),
+                    new FactionStructureBlockEntry('-', null)
+            }
+    );
 }
