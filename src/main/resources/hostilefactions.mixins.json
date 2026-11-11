@@ -4,6 +4,7 @@
   "package": "io.github.atilist.hostilefactions.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "DroneUnlistingMixin",
     "ExampleMixin",
     "MonsterEntityMixin"
   ],
