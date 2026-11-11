@@ -37,6 +37,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock decay = new TickClock(20, "Decay");
     private final TickClock hubRegeneration = new TickClock(400, "HubRegeneration");
     private final TickClock missionDelay = new TickClock(10, "MissionDelay");
+    private final TickClock lifeCheck = new TickClock(200, "LifeCheck");
 
     private int hubX, hubY, hubZ;
     private boolean assignedName = false;
@@ -244,6 +245,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         followMission();
 
         // Debug
+        debug();
+    }
+
+    private void debug() {
         if (hasLocationTarget && locationPath != null) {
             PathNode end = locationPath.getEnd();
             if (end != null) {
@@ -251,6 +256,11 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 world.addParticle("largesmoke", locationX, locationY, locationZ, 0, 0, 0);
             }
         }
+        lifeCheck.tick();
+        if (lifeCheck.inProgress()) {
+            return;
+        }
+        System.out.println("Alive and kicking");
     }
 
     private void followMission() {
@@ -681,6 +691,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         decay.readNbt(nbt);
         hubRegeneration.readNbt(nbt);
         missionDelay.writeNbt(nbt);
+        lifeCheck.readNbt(nbt);
     }
 
     @Override
@@ -697,6 +708,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         decay.writeNbt(nbt);
         hubRegeneration.writeNbt(nbt);
         missionDelay.writeNbt(nbt);
+        lifeCheck.writeNbt(nbt);
     }
 
     @Override

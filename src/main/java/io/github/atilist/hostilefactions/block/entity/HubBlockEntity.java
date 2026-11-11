@@ -77,6 +77,7 @@ public class HubBlockEntity extends BlockEntity {
         currentMission = nbt.getInt("CurrentMission");
         currentAgeOrdinal = nbt.getInt("CurrentAge");
         currentAge = AgeFinder.getAge(currentAgeOrdinal);
+        ageCheck.readNbt(nbt);
     }
 
     @Override
@@ -85,6 +86,7 @@ public class HubBlockEntity extends BlockEntity {
         nbt.putInt("DroneCount", droneCount);
         nbt.putInt("CurrentMission", currentMission);
         nbt.putInt("CurrentAge", currentAgeOrdinal);
+        ageCheck.writeNbt(nbt);
     }
 
     public void reportDroneDeath() {
