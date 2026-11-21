@@ -7,9 +7,10 @@ public class NameGenerator {
 
     private static final String[] DRONE_NAMES = new String[]{
             "Ardian", "Leon", "Elon", "Donald", "Ronald", "Jason", "Andrea", "Gerwin", "Nika", "Simon",
-            "Ralf", "Sabine", "Jeffrey", "Meo", "Tim", "Julian", "Lennart", "Friedrich", "Armin", "Pitt",
+            "Ralf", "Sabine", "Jeffrey", "Meo", "Tim", "Julian", "Lennart", "Friedrich", "Armin", "Pitt", "Pit",
             "Jens", "Fabian", "Jonas", "Ole", "Jeanette", "Werner", "Angela", "Vladimir", "Marie", "Emmanuel",
-            "Alice", "Olaf", "Helmut", "Erich", "Matthew", "Alexander", "Evgenij", "Thomas"
+            "Alice", "Olaf", "Helmut", "Erich", "Matthew", "Alexander", "Evgenij", "Thomas", "Florian", "Marlon",
+            "Carlos", "Michael", "Berat", "Benjamin"
     };
 
     public static String generateDroneName() {
