@@ -260,7 +260,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (lifeCheck.inProgress()) {
             return;
         }
-        System.out.println("Alive and kicking");
+//        System.out.println("Alive and kicking");
     }
 
     private void followMission() {

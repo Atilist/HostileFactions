@@ -55,6 +55,7 @@ public class HubBlockEntity extends BlockEntity {
         if (hasAgeCriteriaMet()) {
             System.out.println("Aged up");
             currentAge = AgeFinder.getNextAge(currentAge);
+            currentAgeOrdinal = currentAge.ordinal();
             updateMissions();
         }
     }
