@@ -198,11 +198,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
                 this.yaw += yawCorrection;
                 if (isStuck()) {
-                    jumping = true;
-                    this.sidewaysSpeed = 10;
-                    if (getBlockId(x, y + 2, z) == 0 && canReplaceBlock(x, y - 2, z) && hasPathCorrectionBlocks()) {
-                        placePathCorrectionBlock(x, y - 2, z);
-                    }
+                    clearObstacles();
                 } else {
                     this.sidewaysSpeed = 0;
                 }
@@ -222,6 +218,57 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
         }
         return path;
+    }
+
+    private void clearObstacles() {
+        jumping = true;
+        this.sidewaysSpeed = 10;
+        if (getBlockId(x, y + 2, z) == 0 && canReplaceBlock(x, y - 2, z) && hasPathCorrectionBlocks()) {
+            // Pillar up
+            placePathCorrectionBlock(x, y - 2, z);
+        } else {
+            // Break through wall
+            int xDirection;
+            int zDirection;
+            if (locationPath == null || locationPath.isFinished()) {
+                xDirection = (locationX - x) > 0 ? 1 : -1;
+                zDirection = (locationZ - z) > 0 ? 1 : -1;
+            } else {
+                Vec3d nodePosition = locationPath.getNodePosition(this);
+                xDirection = (nodePosition.x - x) > 0 ? 1 : -1;
+                zDirection = (nodePosition.z - z) > 0 ? 1 : -1;
+            }
+            int blockX = (int) (x + xDirection - 1 + random.nextInt(3));
+            int blockY = (int) (y - 1);
+            int blockZ = (int) (z - 1 + random.nextInt(3));
+
+            // Break blocks within x direction
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+            blockY++;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+
+            // Break blocks within x and z direction
+            blockZ += zDirection;
+            blockY--;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+            blockY++;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+
+            // Break blocks within z direction
+            blockX -= xDirection;
+            blockY--;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+            blockY++;
+            mustBreakBlock(blockX, blockY, blockZ);
+        }
+    }
+
+    private boolean mustBreakBlock(int blockX, int blockY, int blockZ) {
+        if (getBlockId(blockX, blockY, blockZ) != 0) {
+            breakBlock(blockX, blockY, blockZ);
+            return true;
+        }
+        return false;
     }
 
     private boolean isStuck() {
