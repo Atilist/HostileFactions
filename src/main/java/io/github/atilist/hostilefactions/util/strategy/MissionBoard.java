@@ -22,7 +22,7 @@ public class MissionBoard {
     public static final MissionTemplate
             LOG_GATHERING = new BlockGatheringMissionTemplate(new ItemStack(Block.LOG, 16), new Block[]{Block.LEAVES, Block.LOG}),
             DIRT_GATHERING = new BlockGatheringMissionTemplate(new ItemStack(Block.DIRT, 16), new Block[]{Block.DIRT, Block.GRASS_BLOCK}),
-            PLANKS_CRAFTING = new SingleTaskMissionTemplate(new InventoryCraftingTask(new ItemStack[]{new ItemStack(Block.LOG, 1)}, new MissionTemplate[]{LOG_GATHERING}, new ItemStack(Block.PLANKS, 4))),
+            PLANKS_CRAFTING = new SingleTaskMissionTemplate(new InventoryCraftingTask(new ItemStack[]{new ItemStack(Block.LOG, 4)}, new MissionTemplate[]{LOG_GATHERING}, new ItemStack(Block.PLANKS, 16))),
             CRAFTING_TABLE_CRAFTING = new SingleTaskMissionTemplate(new InventoryCraftingTask(new ItemStack[]{new ItemStack(Block.PLANKS, 4)}, new MissionTemplate[]{PLANKS_CRAFTING}, new ItemStack(Block.CRAFTING_TABLE, 1))),
             LOGISTICS = new MissionTemplate().addTask(new HubReturnTask()).addTask(new LogisticsTask());
 
