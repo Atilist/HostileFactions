@@ -1,9 +1,12 @@
 package io.github.atilist.hostilefactions.block;
 
 import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
+import io.github.atilist.hostilefactions.util.MessageBroadcast;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.world.World;
 import net.modificationstation.stationapi.api.util.Identifier;
 
 public class HubBlock extends LazyBlockWithEntityTemplate {
@@ -15,5 +18,11 @@ public class HubBlock extends LazyBlockWithEntityTemplate {
     @Override
     protected BlockEntity createBlockEntity() {
         return new HubBlockEntity();
+    }
+
+    @Override
+    public void afterBreak(World world, PlayerEntity playerEntity, int x, int y, int z, int meta) {
+        super.afterBreak(world, playerEntity, x, y, z, meta);
+        MessageBroadcast.sendMessage("NPC Faction Hub destroyed");
     }
 }

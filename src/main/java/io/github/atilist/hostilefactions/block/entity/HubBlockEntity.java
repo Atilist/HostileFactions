@@ -1,6 +1,7 @@
 package io.github.atilist.hostilefactions.block.entity;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
+import io.github.atilist.hostilefactions.util.MessageBroadcast;
 import io.github.atilist.hostilefactions.util.TickClock;
 import io.github.atilist.hostilefactions.util.strategy.Age;
 import io.github.atilist.hostilefactions.util.strategy.AgeFinder;
@@ -55,6 +56,7 @@ public class HubBlockEntity extends BlockEntity {
         if (hasAgeCriteriaMet()) {
             System.out.println("Aged up");
             currentAge = AgeFinder.getNextAge(currentAge);
+            MessageBroadcast.sendMessage("Faction Hub has reached the " + currentAge.getAgeName());
             currentAgeOrdinal = currentAge.ordinal();
             updateMissions();
         }

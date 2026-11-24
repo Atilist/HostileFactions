@@ -2,6 +2,7 @@ package io.github.atilist.hostilefactions.entity;
 
 import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
+import io.github.atilist.hostilefactions.util.MessageBroadcast;
 import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
 import io.github.atilist.hostilefactions.util.strategy.Mission;
@@ -66,6 +67,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         super(world);
         if (!assignedName) {
             name = NameGenerator.generateDroneName();
+            MessageBroadcast.sendMessage(name + " has spawned");
             assignedName = true;
         }
     }
@@ -788,6 +790,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     public void beforeRemove() {
         super.beforeRemove();
         BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
+        MessageBroadcast.sendMessage(name + " has died");
         if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
             hubBlockEntity.reportDroneDeath();
         }
