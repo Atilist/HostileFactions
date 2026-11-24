@@ -13,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.ai.pathing.PathNode;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.FoodItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -31,7 +32,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private static final int SLOT_SWAP_DURATION = 10;
     private static final int HOTBAR_SCROLL_DURATION = 5;
     private static final int PATH_PATIENCE = 600;
-    private static final ItemStack BUILDING_BLOCK = new ItemStack(Block.DIRT, 1);
+    private static final ItemStack[] BUILDING_BLOCKS = new ItemStack[] {new ItemStack(Block.DIRT, 1), new ItemStack(Block.SAND, 1), new ItemStack(Block.GRAVEL, 1)};
 
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
@@ -659,11 +660,71 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     }
 
     private boolean hasPathCorrectionBlocks() {
-        return hasItems(BUILDING_BLOCK.copy());
+        // Check if building block is in hand
+        ItemStack hand = getHand();
+        if (hand != null) {
+            for (ItemStack buildingBlock : BUILDING_BLOCKS) {
+                if (hand.isItemEqual(buildingBlock)) {
+                    return true;
+                }
+            }
+        }
+        // Check if building blocks are present at all
+        for (ItemStack buildingBlock : BUILDING_BLOCKS) {
+            if (hasItems(buildingBlock)) {
+                swapToItem(buildingBlock);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private void swapToItem(ItemStack desiredStack) {
+        // Check hand for item
+        ItemStack hand = getHand();
+        if (hand != null) {
+            if (desiredStack.isItemEqual(hand)) {
+                return;
+            }
+        }
+
+        // Check hotbar for item
+        for (int slot = 0; slot < 9; slot++) {
+            ItemStack hotbarStack = this.inventory.getStack(slot);
+            if (hotbarStack == null) {
+                continue;
+            }
+            if (hotbarStack.isItemEqual(desiredStack)) {
+                actionCooldown = HOTBAR_SCROLL_DURATION;
+                inventory.selectedSlot = slot;
+                return;
+            }
+        }
+
+        // Check inventory for item
+        for (int slot = 9; slot < this.inventory.main.length; slot++) {
+            ItemStack inventoryStack = this.inventory.getStack(slot);
+            if (inventoryStack == null) {
+                continue;
+            }
+            if (inventoryStack.isItemEqual(desiredStack)) {
+                setHand(inventoryStack);
+                this.inventory.setStack(slot, hand);
+                actionCooldown = SLOT_SWAP_DURATION;
+                return;
+            }
+        }
     }
 
     private void placePathCorrectionBlock(double blockX, double blockY, double blockZ) {
-        placeBlock((int) (Math.floor(blockX)), (int) blockY, (int) (Math.floor(blockZ)), Block.DIRT);
+        ItemStack hand = getHand();
+        if (hand == null) {
+            return;
+        }
+        Item handItem = hand.getItem();
+        if (handItem instanceof BlockItem blockItem) {
+            placeBlock((int) (Math.floor(blockX)), (int) blockY, (int) (Math.floor(blockZ)), blockItem.getBlock());
+        }
     }
 
     @Override
