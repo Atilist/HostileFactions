@@ -644,8 +644,12 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (blockToPlace == null) {
             return;
         }
-        world.setBlock(blockX, blockY, blockZ, blockToPlace.id);
         ItemStack stackToRemove = new ItemStack(blockToPlace, 1);
+        if (!hasItemInHand(stackToRemove)) {
+            swapToItem(stackToRemove);
+            return;
+        }
+        world.setBlock(blockX, blockY, blockZ, blockToPlace.id);
         removeItems(stackToRemove);
     }
 
@@ -682,11 +686,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private void swapToItem(ItemStack desiredStack) {
         // Check hand for item
         ItemStack hand = getHand();
-        if (hand != null) {
-            if (desiredStack.isItemEqual(hand)) {
-                return;
-            }
-        }
+        if (hasItemInHand(desiredStack)) return;
 
         // Check hotbar for item
         for (int slot = 0; slot < 9; slot++) {
@@ -714,6 +714,14 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 return;
             }
         }
+    }
+
+    private boolean hasItemInHand(ItemStack desiredStack) {
+        ItemStack hand = getHand();
+        if (hand != null) {
+            return desiredStack.isItemEqual(hand);
+        }
+        return false;
     }
 
     private void placePathCorrectionBlock(double blockX, double blockY, double blockZ) {
