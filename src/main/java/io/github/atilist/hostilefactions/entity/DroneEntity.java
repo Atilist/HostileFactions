@@ -39,7 +39,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock missionDelay = new TickClock(10, "MissionDelay");
     private final TickClock lifeCheck = new TickClock(200, "LifeCheck");
 
-    private int hubX, hubY, hubZ;
+    public int hubX, hubY, hubZ;
     private boolean assignedName = false;
     private boolean hubDeprived = false;
     private int actionCooldown;
@@ -621,6 +621,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     public boolean isAtHub() {
         return isAtLocation(hubX, hubY, hubZ);
+    }
+
+    public boolean isFarEnoughFromHub() {
+        return Math.abs(hubX - x) > 64 && Math.abs(hubZ - z) > 64;
     }
 
     public boolean isStationary() {
