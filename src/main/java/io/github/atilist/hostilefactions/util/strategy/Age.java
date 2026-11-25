@@ -6,9 +6,9 @@ import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 public enum Age {
-    DARK("Dark Age", new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, 1, new AgeRequirement(new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, new ItemStack[]{new ItemStack(Block.DIRT, 32), new ItemStack(Block.LOG, 8)})),
-    WOOD("Wood Age", new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, 1, new AgeRequirement(new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, new ItemStack[]{new ItemStack(Block.DIRT, 48), new ItemStack(Block.LOG, 16)})),
-    STONE("Stone Age", new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, 1, new AgeRequirement(new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, new ItemStack[]{new ItemStack(Block.DIRT, 64), new ItemStack(Block.LOG, 24)}));
+    DARK("Dark Age", new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, 4, new AgeRequirement(new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, new ItemStack[]{new ItemStack(Block.DIRT, 32), new ItemStack(Block.LOG, 8)})),
+    WOOD("Wood Age", new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, 8, new AgeRequirement(new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, new ItemStack[]{new ItemStack(Block.DIRT, 48), new ItemStack(Block.LOG, 16)})),
+    STONE("Stone Age", new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, 16, new AgeRequirement(new FactionBuildingTemplate[]{FactionBuildingTemplateBoard.HUB}, new ItemStack[]{new ItemStack(Block.DIRT, 64), new ItemStack(Block.LOG, 24)}));
 
     @Getter
     final FactionBuildingTemplate[] availableBuildings;

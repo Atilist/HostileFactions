@@ -76,6 +76,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     @Override
     protected void tickLiving() {
         super.tickLiving();
+        world.loadChunksNearEntity(this);
         threatPath = walkToEntity(threat, threatPath);
         locationPath = walkToLocation(locationPath);
         if (isSubmergedInWater()) {

@@ -31,7 +31,7 @@ public class HubBlockEntity extends BlockEntity {
 
     @Override
     public void tick() {
-        if (droneCount == 0) {
+        if (droneCount < currentAge.getPopulationLimit()) {
             spawnDrone();
         }
         if (!initialized) {
