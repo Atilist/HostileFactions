@@ -1,6 +1,7 @@
 package io.github.atilist.hostilefactions.entity;
 
 import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
+import io.github.atilist.hostilefactions.events.init.BlockListener;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
 import io.github.atilist.hostilefactions.util.MessageBroadcast;
 import io.github.atilist.hostilefactions.util.NameGenerator;
@@ -33,7 +34,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private static final int SLOT_SWAP_DURATION = 10;
     private static final int HOTBAR_SCROLL_DURATION = 5;
     private static final int PATH_PATIENCE = 600;
-    private static final ItemStack[] BUILDING_BLOCKS = new ItemStack[] {new ItemStack(Block.DIRT, 1), new ItemStack(Block.SAND, 1), new ItemStack(Block.GRAVEL, 1)};
+    private static final ItemStack[] BUILDING_BLOCKS = new ItemStack[] {new ItemStack(Block.DIRT, 1), new ItemStack(Block.SAND, 1), new ItemStack(Block.GRAVEL, 1), new ItemStack(Block.COBBLESTONE, 1)};
 
     private final TickClock hubCheck = new TickClock(200, "HubCheck");
     private final TickClock decay = new TickClock(20, "Decay");
@@ -55,7 +56,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     private Path locationPath = null;
     private int locationX, locationY, locationZ;
-    private boolean hasLocationTarget = false;
+    public boolean hasLocationTarget = false;
     private boolean heightFlexible = false;
 
     public DroneEntity(World world, double x, double y, double z) {
@@ -80,6 +81,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (isSubmergedInWater()) {
             jumping = true;
         }
+    }
+
+    public void forceJumping() {
+        jumping = true;
     }
 
     private Path walkToEntity(Entity target, Path path) {
@@ -154,6 +159,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     private Path walkToLocation(Path path) {
         if (path == null || !hasLocationTarget) {
+            if (hasLocationTarget && isStuck()) {
+                clearObstacles();
+            }
             return null;
         }
         int bodyCenter = MathHelper.floor(this.boundingBox.minY + (double)0.5F);
@@ -166,6 +174,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                     forwardSpeed = 0;
                     nodePosition = null;
                     path = null;
+                    if (isStuck()) {
+                        clearObstacles();
+                    }
                 } else {
                     nodePosition = path.getNodePosition(this);
                 }
@@ -222,8 +233,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
 
     private void clearObstacles() {
         jumping = true;
-        this.sidewaysSpeed = 10;
-        if (getBlockId(x, y + 2, z) == 0 && canReplaceBlock(x, y - 2, z) && hasPathCorrectionBlocks()) {
+        if (isValidEscapeBlock(x, y + 2, z) && canReplaceBlock(x, y - 2, z) && hasPathCorrectionBlocks() && y - locationY < 4) {
             // Pillar up
             placePathCorrectionBlock(x, y - 2, z);
         } else {
@@ -246,25 +256,60 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             if (mustBreakBlock(blockX, blockY, blockZ)) return;
             blockY++;
             if (mustBreakBlock(blockX, blockY, blockZ)) return;
+            blockY++;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
 
             // Break blocks within x and z direction
             blockZ += zDirection;
-            blockY--;
+            blockY -= 2;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+            blockY++;
             if (mustBreakBlock(blockX, blockY, blockZ)) return;
             blockY++;
             if (mustBreakBlock(blockX, blockY, blockZ)) return;
 
             // Break blocks within z direction
             blockX -= xDirection;
-            blockY--;
+            blockY -= 2;
             if (mustBreakBlock(blockX, blockY, blockZ)) return;
             blockY++;
-            mustBreakBlock(blockX, blockY, blockZ);
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+            blockY++;
+            if (mustBreakBlock(blockX, blockY, blockZ)) return;
+
+            // Start building up or digging down if all else fails
+            if (locationY - y > 3) {
+                pillarUp();
+            } else if (y - locationY > 3) {
+                breakBlock(blockX, blockY - 3, blockZ);
+            }
         }
     }
 
+    public void pillarUp() {
+        double randomX = x - 1 + random.nextInt(3);
+        double randomZ = z - 1 + random.nextInt(3);
+        if (isValidEscapeBlock(randomX, y + 2, randomZ) && isValidEscapeBlock(randomX, y + 1, randomZ) && canReplaceBlock(randomX, y - 2, randomZ) && hasPathCorrectionBlocks()) {
+            placePathCorrectionBlock(x, y - 2, z);
+        } else {
+            if (!isValidEscapeBlock(randomX, y + 1, randomZ)) {
+                breakBlock((int) randomX, (int) (y + 1), (int) randomZ);
+            } else if (!isValidEscapeBlock(randomX, y + 2, randomZ)) {
+                breakBlock((int) randomX, (int) (y + 2), (int) randomZ);
+            }
+        }
+    }
+
+    private boolean isValidEscapeBlock(double x, double y, double z) {
+        int blockId = getBlockId(x, y, z);
+        return blockId == 0 || blockId == Block.WATER.id || blockId == Block.FLOWING_WATER.id;
+    }
+
     private boolean mustBreakBlock(int blockX, int blockY, int blockZ) {
-        if (getBlockId(blockX, blockY, blockZ) != 0) {
+        if (world.getBlockId(blockX, blockY, blockZ) == BlockListener.hub.id) {
+            return false;
+        }
+        if (!isValidEscapeBlock(blockX, blockY, blockZ)) {
             breakBlock(blockX, blockY, blockZ);
             return true;
         }
@@ -658,6 +703,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         heightFlexible = true;
     }
 
+    public void removeLocationTarget() {
+        hasLocationTarget = false;
+    }
+
     public void returnToHub() {
         setLocationTarget(hubX, hubY, hubZ);
     }
@@ -712,7 +761,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         return id == 0 || id == Block.WATER.id || id == Block.FLOWING_WATER.id || id == Block.SNOW.id || id == Block.GRASS.id;
     }
 
-    private boolean hasPathCorrectionBlocks() {
+    public boolean hasPathCorrectionBlocks() {
         // Check if building block is in hand
         ItemStack hand = getHand();
         if (hand != null) {

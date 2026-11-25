@@ -1,6 +1,7 @@
 package io.github.atilist.hostilefactions.util.strategy.task;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
+import io.github.atilist.hostilefactions.util.strategy.MissionBoard;
 import io.github.atilist.hostilefactions.util.strategy.Task;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -19,12 +20,12 @@ public class BlockGatheringTask implements Task {
 
     @Override
     public void assignBackupMission(DroneEntity drone) {
-
+        drone.setMission(MissionBoard.PILLAR_UP);
     }
 
     @Override
     public boolean requirementsMet(DroneEntity drone) {
-        return true;
+        return drone.y > 60;
     }
 
     @Override
@@ -45,6 +46,7 @@ public class BlockGatheringTask implements Task {
                 for (int zOffset = -2; zOffset <= 2; zOffset++) {
                     if (isValidBlockId(world, x + xOffset, y + yOffset, z + zOffset)) {
                         drone.breakBlock(x + xOffset, y + yOffset, z + zOffset);
+                        drone.removeLocationTarget();
                         return;
                     }
                 }

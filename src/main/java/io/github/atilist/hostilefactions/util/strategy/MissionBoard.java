@@ -5,6 +5,7 @@ import io.github.atilist.hostilefactions.util.strategy.mission.SingleTaskMission
 import io.github.atilist.hostilefactions.util.strategy.task.HubReturnTask;
 import io.github.atilist.hostilefactions.util.strategy.task.InventoryCraftingTask;
 import io.github.atilist.hostilefactions.util.strategy.task.LogisticsTask;
+import io.github.atilist.hostilefactions.util.strategy.task.PillarUpTask;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,7 +25,9 @@ public class MissionBoard {
             DIRT_GATHERING = new BlockGatheringMissionTemplate(new ItemStack(Block.DIRT, 16), new Block[]{Block.DIRT, Block.GRASS_BLOCK}),
             PLANKS_CRAFTING = new SingleTaskMissionTemplate(new InventoryCraftingTask(new ItemStack[]{new ItemStack(Block.LOG, 4)}, new MissionTemplate[]{LOG_GATHERING}, new ItemStack(Block.PLANKS, 16))),
             CRAFTING_TABLE_CRAFTING = new SingleTaskMissionTemplate(new InventoryCraftingTask(new ItemStack[]{new ItemStack(Block.PLANKS, 4)}, new MissionTemplate[]{PLANKS_CRAFTING}, new ItemStack(Block.CRAFTING_TABLE, 1))),
-            LOGISTICS = new MissionTemplate().addTask(new HubReturnTask()).addTask(new LogisticsTask());
+            LOGISTICS = new MissionTemplate().addTask(new HubReturnTask()).addTask(new LogisticsTask()),
+            HUB_RETURN = new SingleTaskMissionTemplate(new HubReturnTask()),
+            PILLAR_UP = new SingleTaskMissionTemplate(new PillarUpTask());
 
     public static MissionTemplate getAlternativeResourceMission(Item resource) {
         if (unprepared) {
