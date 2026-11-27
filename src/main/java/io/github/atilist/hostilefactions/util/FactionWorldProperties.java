@@ -11,5 +11,5 @@ public interface FactionWorldProperties {
 
     List<Integer[]> getFactionLocations();
 
-    List<Double[]> getDroneLocations();
+    List<Integer[]> getDroneLocations();
 }

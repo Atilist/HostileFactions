@@ -3,6 +3,7 @@ package io.github.atilist.hostilefactions.entity;
 import io.github.atilist.hostilefactions.block.entity.HubBlockEntity;
 import io.github.atilist.hostilefactions.events.init.BlockListener;
 import io.github.atilist.hostilefactions.events.init.EntityListener;
+import io.github.atilist.hostilefactions.util.FactionWorldProperties;
 import io.github.atilist.hostilefactions.util.MessageBroadcast;
 import io.github.atilist.hostilefactions.util.NameGenerator;
 import io.github.atilist.hostilefactions.util.TickClock;
@@ -40,7 +41,6 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     private final TickClock decay = new TickClock(20, "Decay");
     private final TickClock hubRegeneration = new TickClock(400, "HubRegeneration");
     private final TickClock missionDelay = new TickClock(10, "MissionDelay");
-    private final TickClock lifeCheck = new TickClock(200, "LifeCheck");
 
     public int hubX, hubY, hubZ;
     private boolean assignedName = false;
@@ -53,7 +53,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     public Entity threat = null;
     private Path threatPath = null;
     private int pathTime;
-    private boolean addedToHubList = false;
+    private boolean initialized = false;
 
     private Path locationPath = null;
     private int locationX, locationY, locationZ;
@@ -79,6 +79,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     @Override
     public void tick() {
         super.tick();
+        initialize();
         checkExistence();
 
         // Simulate inventory management delays
@@ -108,6 +109,20 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (isSubmergedInWater()) {
             jumping = true;
         }
+    }
+
+    private void initialize() {
+        if (initialized) {
+            return;
+        }
+        BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
+        if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
+            hubBlockEntity.addDrone(this);
+        }
+        if (world.getProperties() instanceof FactionWorldProperties factionWorldProperties) {
+            factionWorldProperties.addDrone(this);
+        }
+        initialized = true;
     }
 
     public void forceJumping() {
@@ -355,11 +370,6 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
                 world.addParticle("largesmoke", locationX, locationY, locationZ, 0, 0, 0);
             }
         }
-        lifeCheck.tick();
-        if (lifeCheck.inProgress()) {
-            return;
-        }
-//        System.out.println("Alive and kicking");
     }
 
     private void followMission() {
@@ -529,13 +539,6 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     }
 
     private void checkExistence() {
-        if (!addedToHubList) {
-            BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
-            if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
-                hubBlockEntity.addDrone(this);
-            }
-            addedToHubList = true;
-        }
         hubCheck.tick();
         if (!hubCheck.inProgress()) {
             checkForHub();
@@ -882,7 +885,6 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         decay.readNbt(nbt);
         hubRegeneration.readNbt(nbt);
         missionDelay.writeNbt(nbt);
-        lifeCheck.readNbt(nbt);
     }
 
     @Override
@@ -899,7 +901,6 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         decay.writeNbt(nbt);
         hubRegeneration.writeNbt(nbt);
         missionDelay.writeNbt(nbt);
-        lifeCheck.writeNbt(nbt);
     }
 
     @Override

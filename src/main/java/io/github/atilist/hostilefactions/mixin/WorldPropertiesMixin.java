@@ -18,7 +18,7 @@ import java.util.List;
 public class WorldPropertiesMixin implements FactionWorldProperties {
     private final List<Integer[]> factionLocations = new ArrayList<>();
     private final List<DroneEntity> drones = new ArrayList<>();
-    private final List<Double[]> droneLocations = new ArrayList<>();
+    private final List<Integer[]> droneLocations = new ArrayList<>();
 
     @Override
     public void addFactionLocation(int x, int z) {
@@ -36,12 +36,13 @@ public class WorldPropertiesMixin implements FactionWorldProperties {
     }
 
     @Override
-    public List<Double[]> getDroneLocations() {
+    public List<Integer[]> getDroneLocations() {
         return droneLocations;
     }
 
     @Inject(method = "updateProperties", at = @At("HEAD"))
     private void updateFactionProperties(NbtCompound nbt, NbtCompound playerNbt, CallbackInfo ci) {
+        // Faction hubs
         NbtList factionList = new NbtList();
         for (Integer[] factionLocation : factionLocations) {
             NbtCompound factionCoordinateCompound = new NbtCompound();
@@ -50,10 +51,22 @@ public class WorldPropertiesMixin implements FactionWorldProperties {
             factionList.add(factionCoordinateCompound);
         }
         nbt.put("hostilefactions:FactionLocations", factionList);
+
+        // Drones
+        NbtList droneList = new NbtList();
+        for (DroneEntity drone : drones) {
+            NbtCompound droneCoordinateCompound = new NbtCompound();
+            droneCoordinateCompound.putInt("x", (int) Math.floor(drone.x));
+            droneCoordinateCompound.putInt("z", (int) Math.floor(drone.z));
+            droneList.add(droneCoordinateCompound);
+        }
+        nbt.put("hostilefactions:DroneLocations", droneList);
     }
 
     @Inject(method = "Lnet/minecraft/world/WorldProperties;<init>(Lnet/minecraft/nbt/NbtCompound;)V", at = @At("TAIL"))
     private void loadFactionProperties(NbtCompound nbt, CallbackInfo ci) {
+        // Faction hubs
+        factionLocations.clear();
         NbtList factionList = nbt.getList("hostilefactions:FactionLocations");
         for (int i = 0; i < factionList.size(); i++) {
             NbtElement factionCoordinateCompound = factionList.get(i);
@@ -62,6 +75,19 @@ public class WorldPropertiesMixin implements FactionWorldProperties {
                 coordinates[0] = nbtCompound.getInt("x");
                 coordinates[1] = nbtCompound.getInt("z");
                 factionLocations.add(coordinates);
+            }
+        }
+
+        // Drones
+        droneLocations.clear();
+        NbtList droneList = nbt.getList("hostilefactions:DroneLocations");
+        for (int i = 0; i < droneList.size(); i++) {
+            NbtElement droneCoordinateCompound = droneList.get(i);
+            if (droneCoordinateCompound instanceof NbtCompound nbtCompound) {
+                Integer[] coordinates = new Integer[2];
+                coordinates[0] = nbtCompound.getInt("x");
+                coordinates[1] = nbtCompound.getInt("z");
+                droneLocations.add(coordinates);
             }
         }
     }

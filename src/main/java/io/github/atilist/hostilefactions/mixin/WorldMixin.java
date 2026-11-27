@@ -33,6 +33,10 @@ public abstract class WorldMixin {
             for (Integer[] factionLocation : factionLocations) {
                 getChunkFromPos(factionLocation[0], factionLocation[1]);
             }
+            List<Integer[]> droneLocations = factionWorldProperties.getDroneLocations();
+            for (Integer[] droneLocation : droneLocations) {
+                getChunkFromPos(droneLocation[0], droneLocation[1]);
+            }
         }
     }
 }
