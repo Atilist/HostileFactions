@@ -10,6 +10,7 @@ import io.github.atilist.hostilefactions.util.strategy.MissionTemplate;
 import io.github.atilist.hostilefactions.util.strategy.construction.FactionBuilding;
 import io.github.atilist.hostilefactions.util.strategy.mission.StructureBuildingMissionTemplate;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
 public class HubBlockEntity extends BlockEntity {
     private final List<MissionTemplate> missions = new ArrayList<>();
     private final TickClock ageCheck = new TickClock(100, "AgeCheck");
+    private final List<DroneEntity> drones = new ArrayList<>();
 
     private int droneCount = 0;
     private int currentMission = 0;
@@ -101,5 +103,17 @@ public class HubBlockEntity extends BlockEntity {
             return null;
         }
         return missions.get(currentMission);
+    }
+
+    public void addDrone(DroneEntity drone) {
+        if (drones.isEmpty() || !drones.contains(drone)) {
+            drones.add(drone);
+        }
+    }
+
+    public void setCommonEnemy(Entity commonEnemy) {
+        for (DroneEntity drone : drones) {
+             drone.threat = commonEnemy;
+        }
     }
 }

@@ -50,9 +50,10 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     public FactionStructure currentStructure = null;
     public Item neededItem = null;
 
-    private Entity threat = null;
+    public Entity threat = null;
     private Path threatPath = null;
     private int pathTime;
+    private boolean addedToHubList = false;
 
     private Path locationPath = null;
     private int locationX, locationY, locationZ;
@@ -72,6 +73,30 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             assignedName = true;
         }
         movementSpeed = 4;
+    }
+
+
+    @Override
+    public void tick() {
+        super.tick();
+        checkExistence();
+
+        // Simulate inventory management delays
+        if (actionCooldown > 0) {
+            actionCooldown--;
+            return;
+        }
+
+        // Survival instincts
+        respondToHealthStatus();
+        prepareCounterattack();
+
+        // Mission execution
+        planLocationPath();
+        followMission();
+
+        // Debug
+        debug();
     }
 
     @Override
@@ -322,29 +347,6 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         return Math.abs(velocityX) < 0.001 && Math.abs(velocityZ) < 0.001;
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        checkExistence();
-
-        // Simulate inventory management delays
-        if (actionCooldown > 0) {
-            actionCooldown--;
-            return;
-        }
-
-        // Survival instincts
-        respondToHealthStatus();
-        prepareCounterattack();
-
-        // Mission execution
-        planLocationPath();
-        followMission();
-
-        // Debug
-        debug();
-    }
-
     private void debug() {
         if (hasLocationTarget && locationPath != null) {
             PathNode end = locationPath.getEnd();
@@ -527,6 +529,13 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     }
 
     private void checkExistence() {
+        if (!addedToHubList) {
+            BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
+            if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
+                hubBlockEntity.addDrone(this);
+            }
+            addedToHubList = true;
+        }
         hubCheck.tick();
         if (!hubCheck.inProgress()) {
             checkForHub();
@@ -841,6 +850,12 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
     @Override
     public boolean damage(Entity damageSource, int amount) {
         threat = damageSource;
+        if (threat instanceof PlayerEntity) {
+            BlockEntity blockEntity = world.getBlockEntity(hubX, hubY, hubZ);
+            if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
+                hubBlockEntity.setCommonEnemy(threat);
+            }
+        }
         return super.damage(damageSource, amount);
     }
 
