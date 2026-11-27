@@ -17,7 +17,7 @@ public class PillarUpTask implements Task {
 
     @Override
     public boolean isFinished(DroneEntity drone) {
-        return drone.y + 2 >= drone.world.getTopSolidBlockY((int) drone.x, (int) drone.z);
+        return drone.y + 2 >= drone.world.getTopSolidBlockY((int) Math.floor(drone.x), (int) Math.floor(drone.z));
     }
 
     @Override
