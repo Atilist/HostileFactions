@@ -6,7 +6,8 @@
   "mixins": [
     "DroneUnlistingMixin",
     "ExampleMixin",
-    "MonsterEntityMixin"
+    "MonsterEntityMixin",
+    "WorldPropertiesMixin"
   ],
   "server": [
   ],
