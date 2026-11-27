@@ -624,6 +624,9 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
         if (blockId == 0) {
             return;
         }
+        if (blockId == BlockListener.hub.id) {
+            return;
+        }
         Block block = Block.BLOCKS[blockId];
         if (block == null) {
             return;
