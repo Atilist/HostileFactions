@@ -71,6 +71,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             MessageBroadcast.sendMessage(name + " has spawned");
             assignedName = true;
         }
+        movementSpeed = 4;
     }
 
     @Override
@@ -497,7 +498,7 @@ public class DroneEntity extends PlayerEntity implements EntitySpawnDataProvider
             return;
         }
         double enemyDistance = threat.getSquaredDistance(this);
-        if (enemyDistance < 4) {
+        if (enemyDistance < 8) {
             attack(threat);
             return;
         }
