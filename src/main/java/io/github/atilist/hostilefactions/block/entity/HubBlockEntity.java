@@ -1,6 +1,7 @@
 package io.github.atilist.hostilefactions.block.entity;
 
 import io.github.atilist.hostilefactions.entity.DroneEntity;
+import io.github.atilist.hostilefactions.util.FactionWorldProperties;
 import io.github.atilist.hostilefactions.util.MessageBroadcast;
 import io.github.atilist.hostilefactions.util.TickClock;
 import io.github.atilist.hostilefactions.util.strategy.Age;
@@ -33,15 +34,24 @@ public class HubBlockEntity extends BlockEntity {
 
     @Override
     public void tick() {
+        world.getChunkFromPos(x, z); // Chunk loading
         if (droneCount < currentAge.getPopulationLimit()) {
             spawnDrone();
         }
-        if (!initialized) {
-            hub = new FactionBuilding(FactionBuildingTemplateBoard.HUB, x - 3, y, z - 3);
-            updateMissions();
-            initialized = true;
-        }
+        initialize();
         attemptAgeUp();
+    }
+
+    private void initialize() {
+        if (initialized) {
+            return;
+        }
+        hub = new FactionBuilding(FactionBuildingTemplateBoard.HUB, x - 3, y, z - 3);
+        updateMissions();
+        initialized = true;
+        if (world.getProperties() instanceof FactionWorldProperties factionWorldProperties) {
+            factionWorldProperties.addFactionLocation(x, z);
+        }
     }
 
     private void updateMissions() {

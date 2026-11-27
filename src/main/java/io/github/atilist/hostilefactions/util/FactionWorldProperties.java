@@ -5,7 +5,7 @@ import io.github.atilist.hostilefactions.entity.DroneEntity;
 import java.util.List;
 
 public interface FactionWorldProperties {
-    void addFactionLocation(int x, int y, int z);
+    void addFactionLocation(int x, int z);
 
     void addDrone(DroneEntity drone);
 
