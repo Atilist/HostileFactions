@@ -25,4 +25,13 @@ public class HubBlock extends LazyBlockWithEntityTemplate {
         super.afterBreak(world, playerEntity, x, y, z, meta);
         MessageBroadcast.sendMessage("NPC Faction Hub destroyed");
     }
+
+    @Override
+    public void onBlockBreakStart(World world, int x, int y, int z, PlayerEntity player) {
+        super.onBlockBreakStart(world, x, y, z, player);
+        BlockEntity blockEntity = world.getBlockEntity(x, y, z);
+        if (blockEntity instanceof HubBlockEntity hubBlockEntity) {
+            hubBlockEntity.setCommonEnemy(player);
+        }
+    }
 }
