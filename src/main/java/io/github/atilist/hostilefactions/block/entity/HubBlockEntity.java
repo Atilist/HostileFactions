@@ -35,7 +35,7 @@ public class HubBlockEntity extends BlockEntity {
             spawnDrone();
         }
         if (!initialized) {
-            hub = new FactionBuilding(FactionBuildingTemplateBoard.HUB, x - 3, y - 1, z - 3);
+            hub = new FactionBuilding(FactionBuildingTemplateBoard.HUB, x - 3, y, z - 3);
             updateMissions();
             initialized = true;
         }

@@ -17,7 +17,7 @@ public class FactionStructureBoard {
                             "PPPPPPP", "       "
                     },
                     new String[] {
-                            "PPPPPPP", "   -   "
+                            "PPP-PPP", "       "
                     },
                     new String[] {
                             "PPPPPPP", "       "
@@ -46,7 +46,7 @@ public class FactionStructureBoard {
                             "PPPPPPP", "P     P", "P     P", "P     P", "PPPPPPP"
                     },
                     new String[] {
-                            "PPPPPPP", "   -   ", "       ", "P     P", "PPPPPPP"
+                            "PPP-PPP", "       ", "       ", "P     P", "PPPPPPP"
                     },
                     new String[] {
                             "PPPPPPP", "P     P", "P     P", "P     P", "PPPPPPP"
